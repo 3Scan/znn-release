@@ -47,6 +47,7 @@ RUN apt-get install -y \
     python3-numpy=1:1.11.0-1ubuntu1 \
     python3-pip=8.1.1-2ubuntu0.4 \
     python-qt4=4.11.4+dfsg-1build4 \
+    qt4-dev-tools=4:4.8.7+dfsg-5ubuntu2 \
     python3-scipy=0.17.0-1 \
     python3-setuptools=20.7.0-1 \
     libhdf5-serial-dev \
@@ -55,6 +56,9 @@ RUN apt-get install -y \
 
 # # install pip for other python packages
 RUN pip3 install --upgrade pip
+
+RUN pip3 install ipython==5.1.0
+
 
 RUN apt-get install -qq g++-4.8 &&\
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 50
@@ -79,7 +83,6 @@ RUN make --jobs=3 --keep-going &&  make clean
 # # make the python core
 RUN cd python/core/; make --jobs=3 --keep-going
 
-# # check patch using single precision, this check will create the net_current.h5 file for testing loading
-
+# add tests here?
 
 CMD /bin/bash
