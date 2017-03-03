@@ -93,20 +93,20 @@ def read_image(pars):
         bdm = bdm[:corner_size, :corner_size]
 
     # fill label holes
-    print "fill boundary hole..."
+    print("fill boundary hole...")
     utils.fill_boundary_holes( lbl )
 
     # increase boundary width
     erosion_size = pars['erosion_size']
     if erosion_size>0:
-        print "increase boundary width"
+        print("increase boundary width")
         erosion_structure = np.ones((erosion_size, erosion_size))
         msk = np.copy(lbl>0)
         from scipy.ndimage.morphology import binary_erosion
         msk = binary_erosion(msk, structure=erosion_structure)
         lbl[msk==False] = 0
 
-    print "boundary map: ", bdm
+    print("boundary map: ", bdm)
 
     return bdm, lbl
 

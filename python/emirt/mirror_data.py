@@ -3,7 +3,7 @@
 import argparse
 import numpy as np 
 
-import emio 
+from . import emio 
 
 def mirror_data(dataset, buffer_sizes):
 	'''Actual script functionality, takes a numpy array, and reflects
@@ -48,16 +48,16 @@ def mirror_data(dataset, buffer_sizes):
 
 def main(filename, fov_x, fov_y, fov_z, outname):
 
-	print "Reading data..."
+	print("Reading data...")
 	original_data = emio.znn_img_read(filename)
 	assert len(original_data.shape) == 3
 
 	buffer_sizes = np.array((fov_z, fov_y, fov_x)) / 2
 
-	print "Buffering..."
+	print("Buffering...")
 	result = mirror_data(original_data, buffer_sizes)
 
-	print "Saving..."
+	print("Saving...")
 	emio.znn_img_save(result, outname)
 
 if __name__ == '__main__':

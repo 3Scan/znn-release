@@ -7,7 +7,7 @@ Jingpeng Wu <jingpeng.wu@gmail.com>,
 Nicholas Turner <nturner@cs.princeton.edu>, 2015
 """
 
-import ConfigParser
+import configparser
 import numpy as np
 import os
 import cost_fn

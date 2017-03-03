@@ -11,7 +11,7 @@ import sys
 import numpy as np
 import emirt
 import utils
-from zdataset import *
+from .zdataset import *
 import os
 import h5py
 
@@ -38,7 +38,7 @@ class CSample(object):
 
         # temporary layer names
         if is_forward and setsz_ins is None and setsz_outs is None:
-            print "forward pass, get setsz from network"
+            print("forward pass, get setsz from network")
             self.setsz_ins  = net.get_inputs_setsz()
             self.setsz_outs = net.get_outputs_setsz()
         else:
@@ -47,10 +47,10 @@ class CSample(object):
         fov = np.asarray(net.get_fov(), dtype='uint32')
 
         # Loading input images
-        print "\ncreate input image class..."
+        print("\ncreate input image class...")
         self.imgs = dict()
         self.ins = dict()
-        for name,setsz_in in self.setsz_ins.iteritems():
+        for name,setsz_in in self.setsz_ins.items():
             #Finding the section of the config file
             imid = config.getint(self.sec_name, name)
             imsec_name = "image%d" % (imid,)
@@ -63,8 +63,8 @@ class CSample(object):
         self.outs = dict()
 
         if not is_forward:
-            print "\ncreate label image class..."
-            for name,setsz_out in self.setsz_outs.iteritems():
+            print("\ncreate label image class...")
+            for name,setsz_out in self.setsz_outs.items():
                 #Allowing for users to abstain from specifying labels
                 if not config.has_option(self.sec_name, name):
                     continue
@@ -83,8 +83,8 @@ class CSample(object):
         self.log = log
 
     def get_dataset(self):
-        raw = self.ins.values()[0].get_dataset()
-        lbl = self.outs.values()[0].get_dataset()
+        raw = list(self.ins.values())[0].get_dataset()
+        lbl = list(self.outs.values())[0].get_dataset()
         return raw, lbl
 
     def _prepare_training(self):
@@ -94,16 +94,16 @@ class CSample(object):
         # init deviation range
         # we need to consolidate this over all input and output volumes
         dev_high = np.array([sys.maxsize, sys.maxsize, sys.maxsize])
-        dev_low  = np.array([-sys.maxint-1, -sys.maxint-1, -sys.maxint-1])
+        dev_low  = np.array([-sys.maxsize-1, -sys.maxsize-1, -sys.maxsize-1])
 
-        for name,setsz in self.setsz_ins.iteritems():
+        for name,setsz in self.setsz_ins.items():
             low, high = self.ins[name].get_dev_range()
             # Deviation bookkeeping
             dev_high = np.minimum( dev_high, high )
             dev_low  = np.maximum( dev_low , low  )
 
         # define output images
-        for name, setsz in self.setsz_outs.iteritems():
+        for name, setsz in self.setsz_outs.items():
             low, high = self.outs[name].get_dev_range()
             # Deviation bookkeeping
             dev_high = np.minimum( dev_high, high )
@@ -112,18 +112,18 @@ class CSample(object):
         # find the candidate central locations of sample
         if len(self.outs) > 0:
             # this will not work with multiple output layers!!
-            self.locs = self.outs.values()[0].get_candidate_loc( dev_low, dev_high )
+            self.locs = list(self.outs.values())[0].get_candidate_loc( dev_low, dev_high )
         else:
-            print "\nWARNING: No output volumes defined!\n"
+            print("\nWARNING: No output volumes defined!\n")
             self.locs = None
 
     def _data_aug(self, subinputs, subtlbls, submsks):
         # random transformation roll
         if self.pars['is_data_aug']:
             rft = (np.random.rand(4)>0.5)
-            for key, subinput in subinputs.iteritems():
+            for key, subinput in subinputs.items():
                 subinputs[key] = utils.data_aug_transform(subinput,      rft )
-            for key, subtlbl in subtlbls.iteritems():
+            for key, subtlbl in subtlbls.items():
                 subtlbls[key]  = utils.data_aug_transform(subtlbl, rft )
                 submsks[key]   = utils.data_aug_transform(submsks[key],  rft )
         return subinputs, subtlbls, submsks
@@ -137,18 +137,18 @@ class CSample(object):
         loc[0] = self.locs[0][ind]
         loc[1] = self.locs[1][ind]
         loc[2] = self.locs[2][ind]
-        dev = loc - self.outs.values()[0].center
+        dev = loc - list(self.outs.values())[0].center
 
         self.write_request_to_log(loc)
 
         # get input and output 4D sub arrays
         subinputs = dict()
-        for key, img in self.ins.iteritems():
+        for key, img in self.ins.items():
             subinputs[key] = self.ins[key].get_subvolume(dev)
 
         subtlbls = dict()
         submsks  = dict()
-        for key, lbl in self.outs.iteritems():
+        for key, lbl in self.outs.items():
             subtlbls[key], submsks[key] = self.outs[key].get_subvolume(dev)
 
         # data augmentation
@@ -209,9 +209,9 @@ class CSample(object):
 
         inputs, outputs = {}, {}
 
-        for name, img in self.ins.iteritems():
+        for name, img in self.ins.items():
             inputs[name] = img.get_next_patch()
-        for name, img in self.outs.iteritems():
+        for name, img in self.outs.items():
             outputs[name] = img.get_next_patch()
 
         return ( inputs, outputs )
@@ -220,7 +220,7 @@ class CSample(object):
 
         shapes = {}
 
-        for name, img in self.ins.iteritems():
+        for name, img in self.ins.items():
             shapes[name] = img.output_volume_shape()
 
         return shapes
@@ -229,7 +229,7 @@ class CSample(object):
 
         patch_counts = {}
 
-        for name, img in self.ins.iteritems():
+        for name, img in self.ins.items():
             patch_counts[name] = img.num_patches()
 
         return patch_counts
@@ -254,10 +254,10 @@ class CAffinitySample(CSample):
         if not is_forward:
             # increase the shape by 1 for affinity sample
             # this will be shrinked later
-            print "increase set size..."
-            for key, setsz in self.setsz_ins.iteritems():
+            print("increase set size...")
+            for key, setsz in self.setsz_ins.items():
                 self.setsz_ins[key][-3:] += 1
-            for key, setsz in self.setsz_outs.iteritems():
+            for key, setsz in self.setsz_outs.items():
                 self.setsz_outs[key][-3:] += 1
 
         # initialize the general sample
@@ -268,7 +268,7 @@ class CAffinitySample(CSample):
         # precompute the global rebalance weights
         self.taffs = dict()
         self.tmsks = dict()
-        for k, lbl in self.lbls.iteritems():
+        for k, lbl in self.lbls.items():
             self.taffs[k] = self._seg2aff( lbl )
             self.tmsks[k] = self._msk2affmsk( self.msks[k] )
 
@@ -350,7 +350,7 @@ class CAffinitySample(CSample):
         self.xwzs = dict()
 
         if self.pars['rebalance_mode']:
-            for k, aff in taffs.iteritems():
+            for k, aff in taffs.items():
 
                 msk = tmsks[k] if tmsks[k].size != 0 else np.zeros((3,0,0,0))
 
@@ -371,7 +371,7 @@ class CAffinitySample(CSample):
             self._prepare_rebalance_weights( subtaffs, submsks )
 
         subwmsks = dict()
-        for k, subtaff in subtaffs.iteritems():
+        for k, subtaff in subtaffs.items():
             assert subtaff.ndim==4 and subtaff.shape[0]==3
             w = np.zeros(subtaff.shape, dtype=self.pars['dtype'])
 
@@ -390,13 +390,13 @@ class CAffinitySample(CSample):
         subimgs, sublbls, submsks = super(CAffinitySample, self).get_random_sample()
 
         # shrink the inputs
-        for key, subimg in subimgs.iteritems():
+        for key, subimg in subimgs.items():
             subimgs[key] = subimg[:,1:,1:,1:]
 
         # transform the label to affinity
         # this operation will shrink the volume size
         subtaffs = dict()
-        for key, sublbl in sublbls.iteritems():
+        for key, sublbl in sublbls.items():
             assert sublbl.shape[0]==1 and sublbl.ndim==4
             subtaffs[key] = self._seg2aff( sublbl )
             # make affinity mask
@@ -428,7 +428,7 @@ class CBoundarySample(CSample):
         # rebalance weights
         self.wps = dict()
         self.wzs = dict()
-        for key, lbl in self.lbls.iteritems():
+        for key, lbl in self.lbls.items():
             msk = self.msks[key]
             self.wps[key], self.wzs[key] = self._get_balance_weight( lbl,msk )
 
@@ -473,11 +473,11 @@ class CBoundarySample(CSample):
 
         # boudary map rebalance
         subwmsks = dict()
-        for key, sublbl in sublbls.iteritems():
+        for key, sublbl in sublbls.items():
             submsk = submsks[key]
             subwmsks[key] = self._rebalance_bdr( sublbl, submsk, self.wps[key], self.wzs[key] )
 
-        for key,sublbl in sublbls.iteritems():
+        for key,sublbl in sublbls.items():
             assert sublbl.ndim==3 or (sublbl.ndim==4 and sublbl.shape[0]==1)
             # binarize the true lable
             sublbls[key] = self._binary_class( sublbl )
@@ -495,7 +495,7 @@ class ConfigSampleOutput(object):
         output_patch_shapes = net.get_outputs_setsz()
 
         self.output_volumes = {}
-        for name, shape in output_patch_shapes.iteritems():
+        for name, shape in output_patch_shapes.items():
 
             num_volumes = shape[0]
 
@@ -508,14 +508,14 @@ class ConfigSampleOutput(object):
 
     def set_next_patch(self, output):
 
-        for name, data in output.iteritems():
+        for name, data in output.items():
             self.output_volumes[name].set_next_patch(data)
 
     def num_patches(self):
 
         patch_counts = {}
 
-        for name, dataset in self.output_volumes.iteritems():
+        for name, dataset in self.output_volumes.items():
             patch_counts[name] = dataset.num_patches()
 
         return patch_counts

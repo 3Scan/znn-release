@@ -14,7 +14,7 @@ def imread( fname ):
         f = h5py.File( fname )
         v = np.asarray( f['/main'] )
         f.close()
-        print 'finished reading image stack :)'
+        print('finished reading image stack :)')
         return v
     elif '.tif' in fname:
 #        import skimage.io
@@ -23,7 +23,7 @@ def imread( fname ):
         vol = tifffile.imread(fname)
         return vol
     else:
-        print "read as znn image..."
+        print("read as znn image...")
         return znn_img_read(fname)
 
 
@@ -39,7 +39,7 @@ def imsave( vol, fname ):
         import tifffile
         tifffile.imsave(fname, vol)
     else:
-        print "save as znn image..."
+        print("save as znn image...")
         znn_img_save(vol, fname)
 
 # load binary znn image

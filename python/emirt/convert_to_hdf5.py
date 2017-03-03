@@ -28,7 +28,7 @@ import numpy as np
 from os import path
 from vol_utils import crop, norm
 
-import emio
+from . import emio
 
 def write_channel_file(data, filename, dtype='float32'):
 	'''Placing the cropped channel data within an hdf5 file'''
@@ -58,19 +58,19 @@ def write_affinity_file(data, filename, dtype='float32'):
 
 def main(net_output_filename, image_filename, output_filename):
 
-	print "Importing data..."
+	print("Importing data...")
 	net_output = emio.znn_img_read(net_output_filename)
 	image = emio.znn_img_read(image_filename)
 
-	print "Cropping channel data..."
+	print("Cropping channel data...")
 	#cropping the channel data to the 3d shape of the affinity graph
 	cropped_image = crop(image, net_output.shape[-3:])
 
 	image_outname = 'channel_{}'.format(path.basename(output_filename))
 
-	print "Writing network output file..."
+	print("Writing network output file...")
 	write_affinity_file(net_output, output_filename)
-	print "Writing image file..."
+	print("Writing image file...")
 	write_channel_file(cropped_image, image_outname)
 
 if __name__ == '__main__':
