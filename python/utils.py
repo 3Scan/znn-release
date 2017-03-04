@@ -32,25 +32,25 @@ def parseIntSet(nputstr=""):
     tokens = [x.strip() for x in nputstr.split(',')]
 
     for i in tokens:
-        try:
-            # typically, tokens are plain old integers
-            selection.add(int(i))
-        except:
- 
-            # if not, then it might be a range
-            try:
-                token = [int(k.strip()) for k in i.split('-')]
-                if len(token) > 1:
-                    token.sort()
-                    # we have items seperated by a dash
-                    # try to build a valid range
-                    first = token[0]
-                    last = token[len(token)-1]
-                    for x in range(first, last+1):
-                        selection.add(x)
-            except:
-                # not an int and not a range...
-                invalid.add(i)
+       try:
+          # typically, tokens are plain old integers
+          selection.add(int(i))
+       except:
+
+          # if not, then it might be a range
+          try:
+             token = [int(k.strip()) for k in i.split('-')]
+             if len(token) > 1:
+                token.sort()
+                # we have items seperated by a dash
+                # try to build a valid range
+                first = token[0]
+                last = token[len(token)-1]
+                for x in range(first, last+1):
+                   selection.add(x)
+          except:
+             # not an int and not a range...
+             invalid.add(i)
 
     return selection
 
@@ -97,10 +97,10 @@ def assert_arglist(single_arg_option, multi_arg_option):
 def rft_to_string(rft):
     '''Transforms an rft (bool array) into a string for logging'''
     if rft is None:
-	    return "[]"
+	return "[]"
 
     rft_mapping = ["z-reflection", "y-reflection",
-		    "x-reflection", "xy-transpose"]
+		   "x-reflection", "xy-transpose"]
 
     rft_matches_mapping = len(rft) == len(rft_mapping)
     assert(rft_matches_mapping)
@@ -197,7 +197,7 @@ def boundary_mirror( arr, fov ):
     ret : expanded 4D array with mirrored boundary
     """
     assert(np.size(fov)==3)
-    print("boundary mirror...")
+    print "boundary mirror..."
     fov = fov.astype('int32')
     if np.all(fov==1):
         return arr
@@ -212,18 +212,18 @@ def boundary_mirror( arr, fov ):
     b = bfsz[1:] - fov/2
     # fill the buffer with existing array
     bf[:, l[0]:b[0], l[1]:b[1], l[2]:b[2]] = arr
-    for c in range(arr.shape[0]):
-        for z in range(arr.shape[1]):
+    for c in xrange(arr.shape[0]):
+        for z in xrange(arr.shape[1]):
             bf[c,z+l[0],:,:] = _mirror2d(arr[c, z, :, :], bf[c,z+l[0],:,:], fov[1:])
-        for y in range(arr.shape[2]):
+        for y in xrange(arr.shape[2]):
             bf[c,:,y+l[1],:] = _mirror2d(arr[c, :, y, :], bf[c,:,y+l[1],:], fov[0:3:2])
-        for x in range(arr.shape[3]):
+        for x in xrange(arr.shape[3]):
             bf[c,:,:,x+l[2]] = _mirror2d(arr[c, :, :, x], bf[c,:,:,x+l[2]], fov[:2])
 
         # repeat mirroring z sections for filling 8 corners
-        for z in range(l[0]):
+        for z in xrange(l[0]):
             bf[c,z,:,:] = _mirror2d(bf[c, z, l[1]:b[1], l[2]:b[2]], bf[c,z,:,:], fov[1:])
-        for z in range(b[0],bfsz[1]):
+        for z in xrange(b[0],bfsz[1]):
             bf[c,z,:,:] = _mirror2d(bf[c, z, l[1]:b[1], l[2]:b[2]], bf[c,z,:,:], fov[1:])
     return bf
 
@@ -239,13 +239,13 @@ def make_continuous( d ):
     -------
     d : dict, the inner array are continuous.
     """
-    for name, arr in d.items():
+    for name, arr in d.iteritems():
         d[name] = np.ascontiguousarray(arr)
     return d
 
 def get_vox_num( d ):
     n = 0
-    for name, arr in d.items():
+    for name, arr in d.iteritems():
         n = n + arr.shape[0]*arr.shape[1]*arr.shape[2]*arr.shape[3]
     return n
 
@@ -253,18 +253,18 @@ def get_total_num(outputs):
     """
     """
     n = 0
-    for name, sz in outputs.items():
+    for name, sz in outputs.iteritems():
         n = n + np.prod(sz)
     return n
 
 def sum_over_dict(dict_vol):
     s = 0
-    for name, vol in dict_vol.items():
+    for name, vol in dict_vol.iteritems():
         s += vol.sum()
     return s
 
 def dict_mask_empty(mask):
-    vals = list(mask.values())
+    vals = mask.values()
     return all([val.size == 0 for val in vals])
 
 def dict_mul(das,dbs):
@@ -272,7 +272,7 @@ def dict_mul(das,dbs):
     multiplication of two dictionary
     """
     ret = dict()
-    for name, a in das.items():
+    for name, a in das.iteritems():
         b = dbs[name]
         if b.shape==a.shape:
             ret[name] = a * b
@@ -281,13 +281,13 @@ def dict_mul(das,dbs):
     return ret
 
 def get_malis_cost( props, lbl_outs, malis_weights ):
-    assert( len(list(props.keys())) == 1 )
+    assert( len(props.keys()) == 1 )
 
     # dictionary of malis weighted pixel classification error
     dmc = dict()
     # dictionary of malis weighted binomial cross entropy energy
     dme = dict()
-    for key, mw in malis_weights.items():
+    for key, mw in malis_weights.iteritems():
         prop = props[key]
         lbl = lbl_outs[key]
         cls = ( (prop>0.5)!=(lbl>0.5) )
@@ -311,9 +311,9 @@ def mask_dict_vol(dict_vol, mask=None):
 
 
 def check_dict_nan( d ):
-    for v in list(d.values()):
+    for v in d.values():
         if np.any(np.isnan(v)):
-            print("bad dict : ", d)
+            print "bad dict : ", d
             return False
     return True
 
@@ -328,19 +328,19 @@ def inter_save(pars, net, lc, vol_ins, props, lbl_outs, \
     if pars['is_debug'] and pars['is_stdio']:
         stdpre = "/processing/znn/train/patch/"
         from emirt.emio import h5write
-        for key, val in vol_ins.items():
+        for key, val in vol_ins.iteritems():
             h5write( filename, stdpre + "inputs/"+key, val )
-        for key, val in props.items():
+        for key, val in props.iteritems():
             h5write( filename, stdpre + "props/"+key, val )
-        for key, val in lbl_outs.items():
+        for key, val in lbl_outs.iteritems():
             h5write( filename, stdpre + "lbls/"+key, val)
-        for key, val in grdts.items():
+        for key, val in grdts.iteritems():
             h5write( filename, stdpre + "grdts/"+key, val )
         if pars['is_malis'] and pars['is_stdio']:
-            for key, val in malis_weights.items():
+            for key, val in malis_weights.iteritems():
                 h5write( filename, stdpre + "malis_weights/", val )
         if pars['rebalance_mode']:
-            for key, val in wmsks.items():
+            for key, val in wmsks.iteritems():
                 h5write( filename, stdpre + "weights/", val )
 
     # Overwriting most current file with completely saved version

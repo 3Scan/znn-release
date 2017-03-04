@@ -7,7 +7,7 @@ Jingpeng Wu <jingpeng.wu@gmail.com>,
 Nicholas Turner <nturner@cs.princeton.edu>, 2015
 """
 
-import configparser
+import ConfigParser
 import numpy as np
 import os
 import cost_fn
@@ -22,7 +22,7 @@ def parser( conf_fname ):
     the ConfigParser module
     '''
 
-    config = configparser.ConfigParser()
+    config = ConfigParser.ConfigParser()
     config.read( conf_fname )
 
     pars = dict()
@@ -236,7 +236,7 @@ def parser( conf_fname ):
     pars['output_prefix'] = config.get('parameters', 'output_prefix')
 
 
-    if 'fdata_spec' in list(pars.keys()):
+    if 'fdata_spec' in pars.keys():
         assert( os.path.exists( pars['fdata_spec'] ) )
         config.read( pars['fdata_spec'] )
     # checking and automatically correcting parameters

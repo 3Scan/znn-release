@@ -169,7 +169,7 @@ def plot_bdm( pars, bdm, lbl, me, se, mbdm=None, sbdm=None):
     DrTh = pars['DrTh']
 
     #%% plot the results
-    print("plot the images")
+    print "plot the images"
     if is_constrained:
         mbdm = np.copy(bdm)
         mbdm[lbl>0] = 1

@@ -229,7 +229,7 @@ class Box:
         return Box(p1, p2)
 
     def __str__( self ):
-        return "<Box (%s,%s,%s)-(%s,%s,%s)>" % \
+        return "<Box (%s,%s,%s)-(%s,%s,%s)>" %
                (self.xmin,self.ymin,self.zmin,
                 self.xmax,self.ymax,self.zmax)
 

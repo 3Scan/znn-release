@@ -151,15 +151,15 @@ def bdm2aff( bdm, Dim = 2 ):
     affs = np.zeros( affs_shape, bdm.dtype)
 
     # get y affinity
-    for z in range( bdm.shape[0] ):
-        for y in range( 1, bdm.shape[1] ):
-            for x in range( bdm.shape[2] ):
+    for z in xrange( bdm.shape[0] ):
+        for y in xrange( 1, bdm.shape[1] ):
+            for x in xrange( bdm.shape[2] ):
                 affs[1,z,y,x] = min( bdm[z,y,x], bdm[z, y-1, x] )
 
     # get x affinity
-    for z in range( bdm.shape[0] ):
-        for y in range( bdm.shape[1] ):
-            for x in range( 1, bdm.shape[2] ):
+    for z in xrange( bdm.shape[0] ):
+        for y in xrange( bdm.shape[1] ):
+            for x in xrange( 1, bdm.shape[2] ):
                 affs[0,z,y,x] = min( bdm[z,y,x], bdm[z, y,   x-1] )
 
     return affs
@@ -180,8 +180,8 @@ def aff2seg( affs, threshold=0.5 ):
     seg:   3D array, segmentation of affinity graph
     """
     if isinstance(affs, dict):
-        assert(len(list(affs.keys()))==1)
-        affs = list(affs.values())[0]
+        assert(len(affs.keys())==1)
+        affs = affs.values()[0]
     # should be 4 dimension
     assert affs.ndim==4
 
@@ -193,13 +193,13 @@ def aff2seg( affs, threshold=0.5 ):
     # initialize segmentation with individual label of each voxel
     vids = np.arange(xaff.size).reshape( xaff.shape )
     # use disjoint sets
-    from . import domains
+    import domains
     djset = domains.CDisjointSets( xaff.size )
 
     # z affnity
-    for z in range( 1, zaff.shape[0] ):
-        for y in range( zaff.shape[1] ):
-            for x in range( zaff.shape[2] ):
+    for z in xrange( 1, zaff.shape[0] ):
+        for y in xrange( zaff.shape[1] ):
+            for x in xrange( zaff.shape[2] ):
                 if zaff[z,y,x]>threshold:
                     vid1 = vids[z,   y, x]
                     vid2 = vids[z-1, y, x]
@@ -208,9 +208,9 @@ def aff2seg( affs, threshold=0.5 ):
                     djset.join( rid1, rid2 )
 
     # y affinity
-    for z in range( yaff.shape[0] ):
-        for y in range( 1, yaff.shape[1] ):
-            for x in range( yaff.shape[2] ):
+    for z in xrange( yaff.shape[0] ):
+        for y in xrange( 1, yaff.shape[1] ):
+            for x in xrange( yaff.shape[2] ):
                 if yaff[z,y,x]>threshold:
                     vid1 = vids[z, y,   x]
                     vid2 = vids[z, y-1, x]
@@ -218,9 +218,9 @@ def aff2seg( affs, threshold=0.5 ):
                     rid2 = djset.find_root( vid2 )
                     djset.join( rid1, rid2 )
     # x affinity
-    for z in range( xaff.shape[0] ):
-        for y in range( xaff.shape[1] ):
-            for x in range( 1, xaff.shape[2] ):
+    for z in xrange( xaff.shape[0] ):
+        for y in xrange( xaff.shape[1] ):
+            for x in xrange( 1, xaff.shape[2] ):
                 if xaff[z,y,x]>threshold:
                     vid1 = vids[z, y, x  ]
                     vid2 = vids[z, y, x-1]
@@ -262,23 +262,23 @@ def seg2aff( lbl, affs_dtype='float32' ):
     affs = np.zeros( affs_shape , dtype= affs_dtype  )
 
     # z affinity
-    for z in range( 1, affs.shape[1] ):
-        for y in range( affs.shape[2] ):
-            for x in range( affs.shape[3] ):
+    for z in xrange( 1, affs.shape[1] ):
+        for y in xrange( affs.shape[2] ):
+            for x in xrange( affs.shape[3] ):
                 if (lbl[z,y,x]==lbl[z-1,y,x]) and lbl[z,y,x]>0 :
                     affs[2,z,y,x] = 1.0
 
     # y affinity
-    for z in range( affs.shape[1] ):
-        for y in range( 1, affs.shape[2] ):
-            for x in range( affs.shape[3] ):
+    for z in xrange( affs.shape[1] ):
+        for y in xrange( 1, affs.shape[2] ):
+            for x in xrange( affs.shape[3] ):
                 if (lbl[z,y,x]==lbl[z,y-1,x]) and lbl[z,y,x]>0 :
                     affs[1,z,y,x] = 1.0
 
     # x affinity
-    for z in range( affs.shape[1] ):
-        for y in range( affs.shape[2] ):
-            for x in range( 1, affs.shape[3] ):
+    for z in xrange( affs.shape[1] ):
+        for y in xrange( affs.shape[2] ):
+            for x in xrange( 1, affs.shape[3] ):
                 if (lbl[z,y,x]==lbl[z,y,x-1]) and lbl[z,y,x]>0 :
                     affs[0,z,y,x] = 1.0
 
@@ -314,8 +314,8 @@ def bdm2seg_2D( bdm, threshold=0.5, is_relabel=True ):
     tsz = np.ones( bdm.size )
 
     # traverse each connectivity along x axis
-    for y in range(bdm.shape[0]):
-        for x1 in range( bdm.shape[1]-1 ):
+    for y in xrange(bdm.shape[0]):
+        for x1 in xrange( bdm.shape[1]-1 ):
             x2 = x1+1
             if bmap[y,x1] and bmap[y,x2]:
                 # the id of pixel
@@ -328,8 +328,8 @@ def bdm2seg_2D( bdm, threshold=0.5, is_relabel=True ):
                 seg, tsz = union_tree(r1, r2, seg, tsz)
 
     # traverse each connectivity along y axis
-    for x in range(bdm.shape[1]):
-        for y1 in range( bdm.shape[0]-1 ):
+    for x in xrange(bdm.shape[1]):
+        for y1 in xrange( bdm.shape[0]-1 ):
             y2 = y1+1
             if bmap[y1,x] and bmap[y2,x]:
                 # the id of pixel
@@ -342,7 +342,7 @@ def bdm2seg_2D( bdm, threshold=0.5, is_relabel=True ):
                 seg, tsz = union_tree(r1, r2, seg, tsz)
 
     # relabel all the trees to root id
-    for k in range(seg.size):
+    for k in xrange(seg.size):
         root_ind, seg = find_root(seg[k], seg)
         seg[k] = root_ind
     # reshape to original shape
@@ -362,11 +362,11 @@ def relabel_1N(seg):
     # find the id mapping
     ids1 = np.unique(seg)
     mp = dict()
-    for i in range( len(ids1) ):
+    for i in xrange( len(ids1) ):
         mp[ ids1[i] ] = i+1
 
     # replace the segment ids
-    for k in range(seg.size):
+    for k in xrange(seg.size):
         seg.flat[k] = mp[ seg.flat[k] ]
     return seg
 
@@ -382,7 +382,7 @@ def bdm2seg(bdm, threshold=0.5, is_label=True):
     seg = np.empty(bdm.shape, dtype='uint32')
     # the maximum id of previous section
     maxid = 0
-    for z in range(bdm.shape[0]):
+    for z in xrange(bdm.shape[0]):
         seg2d = bdm2seg_2D(bdm[z,:,:], threshold, is_relabel=True)
         seg[z,:,:] = maxid + seg2d
         # update the maximum segment id

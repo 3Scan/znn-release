@@ -27,7 +27,7 @@ def get_cls(props, lbls, mask=None):
     props = utils.mask_dict_vol(props, mask)
     lbls = utils.mask_dict_vol(lbls, mask)
 
-    for name, prop in props.items():
+    for name, prop in props.iteritems():
         lbl = lbls[name]
         c += np.count_nonzero( (prop>0.5) != (lbl>0.5) )
 
@@ -55,7 +55,7 @@ def square_loss(props, lbls, mask=None):
     props = utils.mask_dict_vol(props, mask)
     lbls = utils.mask_dict_vol(lbls, mask)
 
-    for name, prop in props.items():
+    for name, prop in props.iteritems():
         lbl = lbls[name]
 
         grdt = prop - lbl
@@ -76,7 +76,7 @@ def square_square_loss(props, lbls, mask=None, margin=0.2):
     props = utils.mask_dict_vol(props, mask)
     lbls = utils.mask_dict_vol(lbls, mask)
 
-    for name, propagation in props.items():
+    for name, propagation in props.iteritems():
         lbl = lbls[name]
 
         gradient = propagation - lbl
@@ -111,7 +111,7 @@ def binomial_cross_entropy(props, lbls, mask=None):
     entropy = dict()
 
     #Finding Gradients
-    for name, prop in props.items():
+    for name, prop in props.iteritems():
         lbl = lbls[name]
 
         grdts[name] = prop - lbl
@@ -122,7 +122,7 @@ def binomial_cross_entropy(props, lbls, mask=None):
     grdts = utils.mask_dict_vol(grdts, mask)
     entropy = utils.mask_dict_vol(entropy, mask)
 
-    for name, vol in entropy.items():
+    for name, vol in entropy.iteritems():
         err += np.sum( vol )
 
     return (props, err, grdts)
@@ -140,20 +140,20 @@ def softmax(props):
     ret:   numpy array, softmax activation volumes
     """
     ret = dict()
-    for name, prop in props.items():
+    for name, prop in props.iteritems():
         # make sure that it is the output of binary class
         # assert(prop.shape[0]==2)
 
         # rebase the prop for numerical stability
         # mathematically, this does not affect the softmax result!
         propmax = np.max(prop, axis=0)
-        for c in range( prop.shape[0] ):
+        for c in xrange( prop.shape[0] ):
             prop[c,:,:,:] -= propmax
 
         prop = np.exp(prop)
         pesum = np.sum(prop, axis=0)
         ret[name] = np.empty(prop.shape, dtype=prop.dtype)
-        for c in range(prop.shape[0]):
+        for c in xrange(prop.shape[0]):
             ret[name][c,:,:,:] = prop[c,:,:,:] / pesum
     return ret
 
@@ -179,7 +179,7 @@ def multinomial_cross_entropy(props, lbls, mask=None):
     # to improve the numerical stability of the error output
     entropy = dict()
 
-    for name, prop in props.items():
+    for name, prop in props.iteritems():
         lbl = lbls[name]
 
         grdts[name] = prop - lbl
@@ -190,7 +190,7 @@ def multinomial_cross_entropy(props, lbls, mask=None):
     grdts = utils.mask_dict_vol(grdts, mask)
     entropy = utils.mask_dict_vol(entropy, mask)
 
-    for name, vol in entropy.items():
+    for name, vol in entropy.iteritems():
         cost += np.sum( vol )
 
     return (props, cost, grdts)
@@ -203,11 +203,11 @@ def softmax_loss2(props, lbls, mask=None):
     grdts = dict()
     err = 0
 
-    for name, prop in props.items():
+    for name, prop in props.iteritems():
         # make sure that it is the output of binary class
         assert(prop.shape[0]==2)
 
-        print("original prop: ", prop)
+        print "original prop: ", prop
 
         # rebase the prop for numerical stability
         # mathimatically, this do not affect the softmax result!
@@ -226,7 +226,7 @@ def softmax_loss2(props, lbls, mask=None):
         lbl = lbls[name]
         grdts[name] = prop - lbl
         err = err + np.sum( -lbl * log_softmax )
-        print("gradient: ", grdts[name])
+        print "gradient: ", grdts[name]
         assert(not np.any(np.isnan(grdts[name])))
     return (props, err, grdts)
 
@@ -334,9 +334,9 @@ def malis_weight_bdm(bdm, lbl, threshold=0.5):
     serr = np.empty(bdm.shape, dtype=bdm.dtype)
 
     # traverse along the z axis
-    for z in range(bdm.shape[1]):
+    for z in xrange(bdm.shape[1]):
         w, me, se = malis_weight_bdm_2D(bdm0[z,:,:], lbl0[z,:,:], threshold)
-        for c in range(bdm.shape[0]):
+        for c in xrange(bdm.shape[0]):
             weights[c,z,:,:] = w
             merr[c,z,:,:] = me
             serr[c,z,:,:] = se
@@ -359,7 +359,7 @@ def malis_weight(pars, props, lbls):
     else:
         is_frac_norm = 0
 
-    for name, prop in props.items():
+    for name, prop in props.iteritems():
         assert prop.ndim==4
         lbl = lbls[name]
         if prop.shape[0]==3:

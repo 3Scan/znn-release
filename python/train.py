@@ -20,7 +20,7 @@ def parse_args(args):
     if not os.path.exists( args['config'] ):
         raise NameError("config file not exist!")
     else:
-        print("reading config parameters...")
+        print "reading config parameters..."
         config, pars = zconfig.parser( args["config"] )
 
     # overwrite the config file parameters from command line
@@ -45,8 +45,8 @@ def parse_args(args):
         # use fixed index
         np.random.seed(1)
 
-    if 'logging' in pars and pars['logging']:
-        print("recording configuration file...")
+    if pars.has_key('logging') and pars['logging']:
+        print "recording configuration file..."
         zlog.record_config_file( pars )
         logfile = zlog.make_logfile_name( pars )
     else:
@@ -73,9 +73,9 @@ def main( args ):
 
     # initialize samples
     outsz = pars['train_outsz']
-    print("\n\ncreate train samples...")
+    print "\n\ncreate train samples..."
     smp_trn = zsample.CSamples(config, pars, pars['train_range'], net, outsz, logfile)
-    print("\n\ncreate test samples...")
+    print "\n\ncreate test samples..."
     smp_tst = zsample.CSamples(config, pars, pars['test_range'],  net, outsz, logfile)
 
     if pars['is_check']:
@@ -103,10 +103,10 @@ def main( args ):
     # the last iteration we want to continue training
     iter_last = lc.get_last_it()
 
-    print("start training...")
+    print "start training..."
     start = time.time()
     total_time = 0.0
-    print("start from ", iter_last+1)
+    print "start from ", iter_last+1
 
     #Saving initial/seeded network
     # get file name
@@ -116,7 +116,7 @@ def main( args ):
     # no nan detected
     nonan = True
 
-    for i in range(iter_last+1, pars['Max_iter']+1):
+    for i in xrange(iter_last+1, pars['Max_iter']+1):
         # time cumulation
         total_time += time.time() - start
         start = time.time()
@@ -135,8 +135,8 @@ def main( args ):
         cls += cost_fn.get_cls(props, lbl_outs)
         # compute rand error
         if pars['is_debug']:
-            assert not np.all(list(lbl_outs.values())[0]==0)
-        re  += pyznn.get_rand_error( list(props.values())[0], list(lbl_outs.values())[0] )
+            assert not np.all(lbl_outs.values()[0]==0)
+        re  += pyznn.get_rand_error( props.values()[0], lbl_outs.values()[0] )
         num_mask_voxels += utils.sum_over_dict(msks)
 
         # check whether there is a NaN here!
@@ -165,8 +165,8 @@ def main( args ):
                 continue
             grdts = utils.dict_mul(grdts, malis_weights)
             dmc, dme = utils.get_malis_cost( props, lbl_outs, malis_weights )
-            malis_cls += list(dmc.values())[0]
-            malis_eng += list(dme.values())[0]
+            malis_cls += dmc.values()[0]
+            malis_eng += dme.values()[0]
 
         # run backward pass
         grdts = utils.make_continuous(grdts)
@@ -201,9 +201,9 @@ def main( args ):
                 show_string = "update %d,    cost: %.3f, pixel error: %.3f, rand error: %.3f, elapsed: %.1f s/iter, learning rate: %.5f"\
                     %(i, err, cls, re, elapsed, eta )
 
-            if 'logging' in pars and pars['logging']:
+            if pars.has_key('logging') and pars['logging']:
                 utils.write_to_log(logfile, show_string)
-            print(show_string)
+            print show_string
 
             # reset err and cls
             err = 0
@@ -237,7 +237,7 @@ def main( args ):
 
         # stop the iteration at checking mode
         if pars['is_check']:
-            print("only need one iteration for checking, stop program...")
+            print "only need one iteration for checking, stop program..."
             break
 
 if __name__ == '__main__':

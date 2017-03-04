@@ -61,7 +61,7 @@ def save_opts(opts, filename, is_stdio=False):
             #Init
 
             #create a dataset for the filters/biases
-            fields = list(layer.keys())
+            fields = layer.keys()
             if "filters" in fields:
 
                 filters_dset_name = "%s/%s/%s" % (stdpre, layer_name, "filters")
@@ -114,7 +114,7 @@ def find_load_net( train_net_prefix, seed=None ):
         fnet = train_net_prefix + "_current.h5"
     # check whether fnet exists
     if not os.path.exists(fnet):
-        print("net file not exist: ", fnet)
+        print "net file not exist: ", fnet
         return None
     else:
         return fnet
@@ -140,7 +140,7 @@ def save_network(network, filename, is_stdio=False):
     '''Saves a network under an h5 file. Appends the number
     of iterations if passed, and updates a "current" file with
     the most recent (uncorrupted) information'''
-    print("save as ", filename)
+    print "save as ", filename
     if os.path.exists(filename):
         os.remove(filename)
     save_opts(network.get_opts(), filename, is_stdio=is_stdio)
@@ -210,7 +210,7 @@ def load_opts(filename, is_stdio=False):
                 #This should be loaded by the filters or biases option
                 continue
             elif field == "znn":
-                print("invalid standard format!")
+                print "invalid standard format!"
             else:
                  layer[field] = f[dset_name].value
 
@@ -234,26 +234,26 @@ def consolidate_opts(source_opts, dest_opts, params=None, layers=None):
     src_params = {}
     src_ffts = {}
     #0=node, 1=edge
-    print("defining initial dict")
+    print "defining initial dict"
     for group_type in range(len(source_opts)):
         for opt_dict in source_opts[group_type]:
 
-            if 'biases' in opt_dict:
+            if opt_dict.has_key('biases'):
                 src_params[opt_dict['name']] = ('biases',opt_dict['biases'])
-            elif 'filters' in opt_dict:
+            elif opt_dict.has_key('filters'):
                 src_params[opt_dict['name']] = ('filters',opt_dict['filters'])
 
             # optimized FFT
-            if 'fft' in opt_dict:
+            if opt_dict.has_key('fft'):
                 src_ffts[opt_dict['name']] = ('fft',opt_dict['fft'])
 
-    print("performing consolidation")
-    source_names = list(src_params.keys())
+    print "performing consolidation"
+    source_names = src_params.keys()
     #Loops through group names for dest, replaces filter/bias values with source
     for group_type in range(len(dest_opts)):
         for opt_dict in dest_opts[group_type]:
 
-            if 'seeding' in opt_dict and (opt_dict['seeding'] == "0"):
+            if opt_dict.has_key('seeding') and (opt_dict['seeding'] == "0"):
                 continue
 
             if opt_dict['name'] in source_names:
@@ -266,13 +266,13 @@ def consolidate_opts(source_opts, dest_opts, params=None, layers=None):
                 del src_params[ opt_dict['name'] ]
 
             # optimized FFT
-            if opt_dict['name'] in list(src_ffts.keys()):
+            if opt_dict['name'] in src_ffts.keys():
                 key, val = src_ffts[opt_dict['name']]
                 opt_dict[key] = val
 
-    layers_not_copied = list(src_params.keys())
+    layers_not_copied = src_params.keys()
     if len(layers_not_copied) != 0:
-        print("WARNING: layer(s) {} not copied!".format(layers_not_copied))
+        print "WARNING: layer(s) {} not copied!".format(layers_not_copied)
 
     return dest_opts
 
@@ -306,7 +306,7 @@ def load_network( params=None, train=True, hdf5_filename=None,
 
         if train:
             if params['seed'] and os.path.exists( params['seed'] ):
-                print("use seed network: ", params['seed'])
+                print "use seed network: ", params['seed']
                 _hdf5_filename = params['seed']
             else:
                 _hdf5_filename = params['train_net_prefix'] + "_current.h5"
@@ -360,18 +360,18 @@ def load_network( params=None, train=True, hdf5_filename=None,
                 _num_threads, False, False )
 
     #If the file doesn't exist, init a new network
-    print("try to load network file: ", _hdf5_filename)
+    print "try to load network file: ", _hdf5_filename
     if os.path.isfile( _hdf5_filename ):
 
         load_options = load_opts(_hdf5_filename, _is_stdio)
         template_options = template.get_opts()
         del template
 
-        print("consolidating options...")
+        print "consolidating options..."
         final_options = consolidate_opts(load_options, template_options, params)
 
     else:
-        print(_hdf5_filename, " do not exist, initialize a new network...")
+        print _hdf5_filename, " do not exist, initialize a new network..."
         final_options = template.get_opts()
         del template
 
@@ -448,20 +448,20 @@ def create_net(pars):
     fnet = find_load_net( pars['train_net_prefix'], pars['seed'] )
 
     if fnet and os.path.exists(fnet):
-        print("loading network: ", fnet)
+        print "loading network: ", fnet
         net = load_network( pars, fnet )
         # load existing learning curve
         lc = zstatistics.CLearnCurve( fnet )
     else:
-        print("initialize a new network...")
+        print "initialize a new network..."
         net = init_network( pars )
         lc = zstatistics.CLearnCurve()
 
     # show field of view
-    print("field of view: ", net.get_fov())
+    print "field of view: ", net.get_fov()
 
     # set some parameters
-    print('setting up the network...')
+    print 'setting up the network...'
     net.set_eta( pars['eta'] )
     net.set_momentum( pars['momentum'] )
     net.set_weight_decay( pars['weight_decay'] )

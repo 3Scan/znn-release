@@ -115,9 +115,9 @@ class CompareVol:
         elif 'v' == event.key:
             #Display the data values for the given data coordinate
             xcoord, ycoord = int(event.xdata), int(event.ydata)
-            print(xcoord, ycoord)
+            print xcoord, ycoord
 
-            print([vol[self.z, ycoord, xcoord] for vol in self.vols])
+            print [vol[self.z, ycoord, xcoord] for vol in self.vols]
 
 
         elif event.key in ['1','2','3','4','5','6','7','8','9']:
@@ -204,7 +204,7 @@ def matshow(mat, xlabel=''):
     ax1.matshow(mat, cmap=plt.cm.gray_r)
     # add numbers
     Nx, Ny = mat.shape
-    x,y = np.meshgrid(list(range(Nx)), list(range(Ny)))
+    x,y = np.meshgrid(range(Nx), range(Ny))
     for i,j in zip(x.ravel(),y.ravel()):
         s = str( np.round(mat[i,j], decimals=2) )
         if mat[i,j]<np.mean(mat):
@@ -236,7 +236,7 @@ def random_color_show( im, mode='mat' ):
         plt.imshow(im, extent=extent, origin='upper',interpolation='nearest', cmap=cmap)
 #        plt.matshow(im, cmap=mcolor.ListedColormap( cmap_array ) )
     else:
-        print('unknown mode')
+        print 'unknown mode'
     plt.show()
 
 def progress(count, total, suffix=''):

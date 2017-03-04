@@ -25,7 +25,7 @@ def check_gradient(pars, net, smp, h=0.00001):
     # shift the input to compute the analytical gradient
     vol_ins1 = dict()
     vol_ins2 = dict()
-    for key, val in vol_ins.items():
+    for key, val in vol_ins.iteritems():
         vol_ins1[key] = val - h
         vol_ins2[key] = val + h
         assert np.any(vol_ins1[key]!=vol_ins2[key])
@@ -36,7 +36,7 @@ def check_gradient(pars, net, smp, h=0.00001):
     props_tmp, cerr, grdts = pars['cost_fn']( copy.deepcopy(props), lbl_outs, msks )
 
     # compute the analytical gradient
-    for key, g in grdts.items():
+    for key, g in grdts.iteritems():
         lbl = lbl_outs[key]
         prop = props[key]
         prop1 = props1[key]
@@ -45,33 +45,33 @@ def check_gradient(pars, net, smp, h=0.00001):
         error = g-ag
 
         # label value
-        print("ground truth label: ", lbl[0,...])
-        print("forward output: ", prop[0,...])
-        print("forward output - h: ", prop1[0,...])
-        print("forward output + h: ", prop2[0,...])
-        print("numerical gradient: ", g[0,...])
-        print("analytical gradient: ", ag[0,...])
+        print "ground truth label: ", lbl[0,...]
+        print "forward output: ", prop[0,...]
+        print "forward output - h: ", prop1[0,...]
+        print "forward output + h: ", prop2[0,...]
+        print "numerical gradient: ", g[0,...]
+        print "analytical gradient: ", ag[0,...]
         # check the error range
-        print("gradient error: ", error[0,...])
+        print "gradient error: ", error[0,...]
 
         com = emirt.show.CompareVol((lbl[0,...], prop[0,...], prop1[0,...], prop2[0,...], g[0,...], ag[0,...]))
         com.vol_compare_slice()
 
         # check the relative error
         rle = np.abs(ag-g) / (np.maximum(np.abs(ag),np.abs(g)))
-        print("relative gradient error: ", rle[0,...])
+        print "relative gradient error: ", rle[0,...]
         assert error.max < 10*h*h
         assert rle.max() < 0.01
 
 def check_dict_all_zero( d ):
-    for v in list(d.values()):
+    for v in d.values():
         if np.all(v==0):
-            print("all zero!")
+            print "all zero!"
             return True
     return False
 
 def check_patch(pars, smp):
-    print("check patch matching...")
+    print "check patch matching..."
     # get random sub volume from sample
     vol_ins, lbl_outs, msks, wmsks = smp.get_random_sample()
 
@@ -86,18 +86,18 @@ def check_patch(pars, smp):
     if os.path.exists(fname):
         import h5py
         f = h5py.File(fname)
-        print("find existing patch: "+ fname)
+        print "find existing patch: "+ fname
         stdpre = "/processing/znn/train/patch/"
-        for key,val in vol_ins.items():
+        for key,val in vol_ins.iteritems():
             ref = f[stdpre+"inputs/"+key]
             assert np.all(val==ref)
-        for key,val in lbl_outs.items():
+        for key,val in lbl_outs.iteritems():
             ref = f[stdpre+"lbls/"+key]
             assert np.all(val==ref)
         f.close()
-        print("congrates! patch checking passed!")
+        print "congrates! patch checking passed!"
     else:
-        print("no checking reference file: ", fname)
+        print "no checking reference file: ", fname
 
 
 if __name__ == '__main__':
@@ -106,4 +106,4 @@ if __name__ == '__main__':
     ------
     python train.py path/to/config.cfg
     """
-    print("main function was removed!")
+    print "main function was removed!"

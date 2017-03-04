@@ -2,7 +2,7 @@
 from starcluster import config
 import time
 import threading
-import configparser
+import ConfigParser
 
 #%% a thread to run
 class ThreadRun(object):
@@ -33,7 +33,7 @@ def main(sec, train_cfg='train.cfg', sc_cfg='~/.starcluster/config'):
     """
 
     #%% parameters
-    tncfg = configparser.ConfigParser()
+    tncfg = ConfigParser.ConfigParser()
     tncfg.read( train_cfg )
     # cluster name
     cluster_name = tncfg.get(sec, 'cluster_name')
@@ -74,7 +74,7 @@ def main(sec, train_cfg='train.cfg', sc_cfg='~/.starcluster/config'):
 
 
     #%% start the cluster
-    print("constantly check whether this cluster is stopped or terminated.")
+    print "constantly check whether this cluster is stopped or terminated."
     cid=0
     f = open('log.txt','a+')
     f.write( "try to start a cluster with id: {}\n".format( cid ) )
@@ -82,20 +82,20 @@ def main(sec, train_cfg='train.cfg', sc_cfg='~/.starcluster/config'):
         # if cluster not started start the cluster
         if (not cl.nodes) or cl.is_cluster_stopped() or cl.is_cluster_terminated():
             cid += 1
-            print("try to start a cluster with id: {}\n".format( cid ))
+            print "try to start a cluster with id: {}\n".format( cid )
             time.sleep(1)
             # run the start in a separate thread
             try:
                 ThreadRun(cl)
-                print("clulster creater thread running...")
+                print "clulster creater thread running..."
                 # wait for the volume mounted
-                print("wait for the volume to attach...")
+                print "wait for the volume to attach..."
                 vol_id = cl.volumes['data']['volume_id']
                 volume = cl.ec2.get_volume( vol_id )
                 cl.ec2.wait_for_volume( volume, state='attached' )
                 time.sleep(3*60)
             except:
-                print("running failed")
+                print "running failed"
                 time.sleep(1)
                 pass
 
@@ -103,13 +103,13 @@ def main(sec, train_cfg='train.cfg', sc_cfg='~/.starcluster/config'):
         mynode = node_search(cl, node_name)
         if mynode is None:
             try:
-                print("add node ", node_name, " with a bid of $", spot_bid)
+                print "add node ", node_name, " with a bid of $", spot_bid
                 cl.add_node( alias=node_name, spot_bid=spot_bid )
             except:
-                print("node creation failed.")
-                print("please check the starcluster config options, such as subnet.")
+                print "node creation failed."
+                print "please check the starcluster config options, such as subnet."
                 continue
-            print("wait for the launch of node {} ...".format(node_name))
+            print "wait for the launch of node {} ...".format(node_name)
             cl.ec2.wait_for_propagation( spot_requests=mynode )
             cl.wait_for_ssh()
             cl.wait_for_cluster(msg="Waiting for node(s) to come up...")
@@ -117,25 +117,25 @@ def main(sec, train_cfg='train.cfg', sc_cfg='~/.starcluster/config'):
 
             mynode = node_search(cl, node_name)
             # tag the user and project name
-            print("add tags: User--",user,", Project--",prj)
+            print "add tags: User--",user,", Project--",prj
             mynode.add_tag("User", user)
             mynode.add_tag("Project", prj)
 
             try:
-                print("run command after node launch.")
+                print "run command after node launch."
                 mynode.ssh.execute( command )
             except:
-                print("command execution failed!")
+                print "command execution failed!"
 
         f.write('wait for cluster...\n')
         # sleep for a while
-        print("node {} is running, wait for {} secs to check.".format( node_name, node_check_interval ))
+        print "node {} is running, wait for {} secs to check.".format( node_name, node_check_interval )
         time.sleep( node_check_interval )
 
     f.close()
 
 if __name__ == '__main__':
-    print("""
+    print """
     usage:
     python aws_train.py node_name train_config starcluster_config
     default parameters:
@@ -144,7 +144,7 @@ if __name__ == '__main__':
 
     example:
     python aws_train.py N4
-    """)
+    """
     from sys import argv
     if len(argv)==1:
         raise NameError( "please specify the node name!")
@@ -155,4 +155,4 @@ if __name__ == '__main__':
     elif len(argv)==4:
         main(argv[1], argv[2], argv[3])
     else:
-        print("too many parameters, please check usage!")
+        print "too many parameters, please check usage!"

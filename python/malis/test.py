@@ -56,8 +56,8 @@ def aleks_malis(affs, lbl):
     affs = np.ascontiguousarray( affs.astype('float32') )
     true_affs = np.ascontiguousarray( true_affs.astype('float32') )
 
-    print("input affinity: ", affs)
-    print("true affinity: ", true_affs)
+    print "input affinity: ", affs
+    print "true affinity: ", true_affs
 
     me, se, re, num_non_bdr = pymalis.zalis(  affs, true_affs, 1.0, 0.0, 0)
 
@@ -107,15 +107,15 @@ def make_edge_unique( affs ):
     """
     step = 0.0
     # y affinity
-    for z in range( affs.shape[1] ):
-        for y in range( 1, affs.shape[2] ):
-            for x in range( affs.shape[3] ):
+    for z in xrange( affs.shape[1] ):
+        for y in xrange( 1, affs.shape[2] ):
+            for x in xrange( affs.shape[3] ):
                 step += 1
                 affs[1,z,y,x] -= 0.00001 * step
     # x affinity
-    for z in range( affs.shape[1] ):
-        for y in range( affs.shape[2] ):
-            for x in range( 1, affs.shape[3] ):
+    for z in xrange( affs.shape[1] ):
+        for y in xrange( affs.shape[2] ):
+            for x in xrange( 1, affs.shape[3] ):
                 step += 1
                 affs[2,z,y,x] -= 0.00001 * step
     return affs
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     # get the parameters
     pars = get_params()
 
-    from . import data_prepare
+    import data_prepare
     if pars['is_affinity']:
         if pars['is_fake']:
             #        data, lbl = data_prepare.make_fake_3D_aff( 3, 7, 3, 7)
@@ -140,8 +140,8 @@ if __name__ == "__main__":
         # transform to affinity map
         true_affs = emirt.volume_util.seg2aff( lbl.reshape((1,)+lbl.shape) )
         lbl2 = emirt.volume_util.aff2seg( true_affs )
-        print("original label: ", lbl)
-        print("transformed lable: ", lbl2)
+        print "original label: ", lbl
+        print "transformed lable: ", lbl2
         if pars['is_fake']:
             data = make_edge_unique( data )
 
@@ -151,21 +151,21 @@ if __name__ == "__main__":
         if pars['is_aleks']:
             w, me, se = constrained_aleks_malis(data, lbl)
         else:
-            print("compute the constrained malis weight...")
+            print "compute the constrained malis weight..."
             w, me, se = cost_fn.constrained_malis_weight_bdm_2D(data, lbl, \
                                                                 is_affinity = pars['is_affinity'])
     else:
-        print("normal malis with aleks version...")
+        print "normal malis with aleks version..."
         w, me, se = aleks_bin_malis(data, lbl)
 
         # python interface of malis
         w2, me2, se2 = aleks_malis( data, lbl )
 
-        print("me: ", me)
-        print("me2: ", me2)
+        print "me: ", me
+        print "me2: ", me2
 
-        print("se: ", se)
-        print("se2: ", se2)
+        print "se: ", se
+        print "se2: ", se2
 
         assert( np.all(se2==se) )
         assert( np.all(me2==me) )
@@ -174,15 +174,15 @@ if __name__ == "__main__":
         se = exchange_x_z( se )
 
         w, me3, se3 = cost_fn.malis_weight_aff(data, lbl)
-        print("python me: ", me3)
-        print("python se: ", se3)
+        print "python me: ", me3
+        print "python se: ", se3
         assert ( np.all( me==me3 ) )
         assert ( np.all( se==se3 ) )
 
     elapsed = time.time() - start
-    print("elapsed time is {} sec".format(elapsed))
+    print "elapsed time is {} sec".format(elapsed)
 
-    from . import malis_show
+    import malis_show
     malis_show.plot(pars, data, lbl, me, se)
 
-    print("------end-----")
+    print "------end-----"

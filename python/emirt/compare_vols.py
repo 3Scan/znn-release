@@ -28,7 +28,7 @@ Nicholas Turner, June 2015
 '''
 import h5py
 import numpy as np
-from . import emio, show
+import emio, show
 from sys import argv
 
 def load_data(output_fname):

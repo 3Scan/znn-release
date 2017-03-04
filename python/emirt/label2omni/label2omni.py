@@ -38,7 +38,7 @@ def segment(infname, outfname):
         seg = seg.astype('uint32')
                 
     sids = np.unique(seg)
-    print("segment ids: ", sids)
+    print "segment ids: ", sids
     assert(len(sids)>2)
     # fake 
     dend = np.array([sids[-1],sids[-2]]).reshape(2,1).astype('uint32')
@@ -53,7 +53,7 @@ def segment(infname, outfname):
 if __name__ == '__main__':
     import sys
     assert( len(sys.argv)>2 )
-    print("usage: \npython fake_seg.py raw_tif_file label_tif_file")
+    print "usage: \npython fake_seg.py raw_tif_file label_tif_file"
     if len(sys.argv)==5:
         chann(   sys.argv[1], sys.argv[2] )
         segment( sys.argv[3], sys.argv[4] )

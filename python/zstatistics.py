@@ -41,11 +41,11 @@ class CLearnCurve:
 
         if "/processing/znn/train/statistics/" in f:
             self.stdpre = "/processing/znn/train/statistics/"
-            print("stdpre: ", self.stdpre)
+            print "stdpre: ", self.stdpre
         else:
             self.stdpre = "/"
 
-        print("stdpre: ", self.stdpre)
+        print "stdpre: ", self.stdpre
         self.tt_it  = list( f[self.stdpre + 'test/it'].value )
         self.tt_err = list( f[self.stdpre + 'test/err'].value )
         self.tt_cls = list( f[self.stdpre + 'test/cls'].value )
@@ -175,7 +175,7 @@ class CLearnCurve:
         # return the last iteration number
         if len(self.tt_it)>0 and len(self.tn_it)>0:
             last_it = max( self.tt_it[-1], self.tn_it[-1] )
-            print("inherit last iteration: ", last_it)
+            print "inherit last iteration: ", last_it
             return last_it
         else:
             return 0
@@ -194,7 +194,7 @@ class CLearnCurve:
 
         x2 = list()
         y2 = list()
-        for i in range(lw, x.size-rw, w):
+        for i in xrange(lw, x.size-rw, w):
             x2.append( x[i] )
             y2.append( np.mean( y[i-lw:i+rw+1] ) )
         return x2, y2
@@ -212,7 +212,7 @@ class CLearnCurve:
         return 0
 
     def print_max_update(self):
-        print("max iter: ", self._find_max_update( self.tn_it, self.tn_cls ))
+        print "max iter: ", self._find_max_update( self.tn_it, self.tn_cls )
 
     def show(self, w):
         """
@@ -233,10 +233,10 @@ class CLearnCurve:
 
         # using K as iteration unit
         tn_it = self.tn_it
-        for i in range(len(tn_it)):
+        for i in xrange(len(tn_it)):
             tn_it[i] = tn_it[i] / float(1000)
         tt_it = self.tt_it
-        for i in range(len(tt_it)):
+        for i in xrange(len(tt_it)):
             tt_it[i] = tt_it[i] / float(1000)
 
         # plot data
@@ -301,7 +301,7 @@ class CLearnCurve:
     def save(self, pars, fname=None, elapsed=0, suffix=None):
         if pars['is_stdio']:
             self.stdpre = "/processing/znn/train/statistics/"
-            print("stdpre: ", self.stdpre)
+            print "stdpre: ", self.stdpre
         else:
             self.stdpre = "/"
 
@@ -375,5 +375,5 @@ if __name__ == '__main__':
 
     if len(sys.argv)==3:
         w = int( sys.argv[2] )
-        print("window size: ", w)
+        print "window size: ", w
     lc.show( w )
