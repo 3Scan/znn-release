@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-__doc__ = """
+"""
 
 ZNN Full Forward-Pass Computation
 
@@ -20,11 +20,11 @@ ZNN Full Forward-Pass Computation
 
 Inputs:
 
-	-Configuration File Name
+    -Configuration File Name
 
 Main Outputs:
 
-	-Saved .tif/h5 files for each sample within the configuration file
+    -Saved .tif/h5 files for each sample within the configuration file
 
 Nicholas Turner <nturner@cs.princeton.edu>
 Jingpeng Wu <jingpeng.wu@gmail.com>, 2015
@@ -34,6 +34,7 @@ import os
 from front_end import *
 import utils
 from emirt import emio
+
 
 def parse_args( args ):
     config, params = zconfig.parser( args['config'] )
@@ -47,6 +48,7 @@ def parse_args( args ):
 
     return config, params
 
+
 def batch_forward_pass( config, params, net, verbose=True, sample_ids=None ):
     '''
     Performs a full forward pass for all samples specified within
@@ -57,16 +59,17 @@ def batch_forward_pass( config, params, net, verbose=True, sample_ids=None ):
 
     output_patch_shape = params['forward_outsz']
     sample_outputs = {}
-    #Loop over sample range
+    # Loop over sample range
     for sample in params['forward_range']:
         print("Sample: %d" % sample)
         # read image stacks
         # Note: preprocessing included within CSamples
         # See CONSTANTS section above for optionname values
-        Dataset = zsample.CSample(config, params, sample, net, \
+        Dataset = zsample.CSample(config, params, sample, net,
                                   outsz = output_patch_shape, is_forward=True )
         sample_outputs[sample] = forward_pass( params, Dataset, net )
     return sample_outputs
+
 
 def forward_pass( params, Dataset, network, verbose=True ):
     '''
@@ -85,10 +88,10 @@ def forward_pass( params, Dataset, network, verbose=True ):
 
     for i in range( num_patches ):
         if verbose:
-	    print("Output patch #{} of {}".format(i+1, num_patches)) # i is just an index
+            print("Output patch #{} of {}".format(i+1, num_patches))  # i is just an index
         input_patches, junk = Dataset.get_next_patch()
-	vol_ins = utils.make_continuous(input_patches)
-	output = network.forward( vol_ins )
+        vol_ins = utils.make_continuous(input_patches)
+        output = network.forward( vol_ins )
         Output.set_next_patch( output )
         if params['is_check']:
             break
@@ -99,6 +102,7 @@ def forward_pass( params, Dataset, network, verbose=True ):
 
     return Output
 
+
 def run_softmax( sample_output ):
     '''
     Performs a softmax calculation over the output volumes for a
@@ -107,7 +111,6 @@ def run_softmax( sample_output ):
     from cost_fn import softmax
 
     for dname, dataset in sample_output.output_volumes.items():
-
         props = {'dataset':dataset.data}
         props = softmax(props)
         dataset.data = list(props.values())[0]
@@ -115,58 +118,58 @@ def run_softmax( sample_output ):
 
     return sample_output
 
+
 def output_volume_shape_consistent( output_vol_shapes ):
-	'''
-	Returns whether the dictionary of output shapes passed to the function
-	contains the same array for each entry
+    '''
+    Returns whether the dictionary of output shapes passed to the function
+    contains the same array for each entry
 
-	Here, this encodes whether all of the input volumes agree on the
-	size of the output volume (disagreement is a bad sign...)
-	'''
-	#output_vol_shapes should be a dict
-	shapes = list(output_vol_shapes.values())
-	assert len(shapes) > 0
+    Here, this encodes whether all of the input volumes agree on the
+    size of the output volume (disagreement is a bad sign...)
+    '''
+    # output_vol_shapes should be a dict
+    shapes = list(output_vol_shapes.values())
+    assert len(shapes) > 0
+    return all( [np.all(shape == shapes[0]) for shape in shapes] )
 
-	return all( [np.all(shape == shapes[0]) for shape in shapes] )
 
 def num_patches_consistent( input_patch_count, output_patch_count ):
-	'''
-	Returns whether the dictionaries of patch counts all agree throughout
-	each entry.
-	'''
+    '''
+    Returns whether the dictionaries of patch counts all agree throughout
+    each entry.
+    '''
+    # These should be dicts as well
+    input_counts = list(input_patch_count.values())
+    output_counts = list(output_patch_count.values())
 
-	#These should be dicts as well
-	input_counts = list(input_patch_count.values())
-	output_counts = list(output_patch_count.values())
+    assert len(input_counts) > 0 and len(output_counts) > 0
+    return all( [count == input_counts[0] for count in input_counts + output_counts])
 
-	assert len(input_counts) > 0 and len(output_counts) > 0
-
-	return all( [count == input_counts[0] for count in input_counts + output_counts])
 
 def save_sample_outputs(sample_outputs, prefix):
     '''
     Writes the resulting output volumes to disk according to the
     output_prefix
     '''
-
     for sample_num, output in sample_outputs.items():
         for dataset_name, dataset in output.output_volumes.items():
             num_volumes = dataset.data.shape[0]
 
-            #Consolidated 4d volume
+            # Consolidated 4d volume
             # hdf5 output for watershed
-            h5name = "{}_sample{}_{}.h5".format(prefix, sample_num,	dataset_name)
+            h5name = "{}_sample{}_{}.h5".format(prefix, sample_num, dataset_name)
             print("save output to ", h5name)
             import os
             if os.path.exists( h5name ):
                 os.remove( h5name )
             emio.imsave(dataset.data, h5name)
 
-            #Constitutent 3d volumes
+            # Constitutent 3d volumes
             # tif file for easy visualization
             for i in range( num_volumes ):
                 emio.imsave(dataset.data[i,:,:,:],\
                     "{}_sample{}_{}_{}.tif".format(prefix, sample_num, dataset_name, i))
+
 
 def main( args ):
     '''

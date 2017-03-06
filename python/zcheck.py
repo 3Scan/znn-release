@@ -8,6 +8,7 @@ import numpy as np
 import utils
 import emirt
 
+
 def check_gradient(pars, net, smp, h=0.00001):
     """
     gradient check method:
@@ -63,12 +64,14 @@ def check_gradient(pars, net, smp, h=0.00001):
         assert error.max < 10*h*h
         assert rle.max() < 0.01
 
+
 def check_dict_all_zero( d ):
     for v in list(d.values()):
         if np.all(v==0):
             print("all zero!")
             return True
     return False
+
 
 def check_patch(pars, smp):
     print("check patch matching...")

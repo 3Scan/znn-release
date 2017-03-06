@@ -7,6 +7,7 @@ import numpy as np
 from matplotlib.pylab import plt
 from os import path
 
+
 class CLearnCurve:
     def __init__(self, fname=None):
         if fname is None:

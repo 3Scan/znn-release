@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # test the python interface, see if everything works
+
+# get to the test directory
 cd /root/znn-release/python
 
 # test affinity training patch, network initialization, network with even field of view

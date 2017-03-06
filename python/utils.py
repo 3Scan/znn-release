@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-__doc__ = """
-
+"""
 Jingpeng Wu <jingpeng.wu@gmail.com>, 2015
 """
 
@@ -32,27 +31,27 @@ def parseIntSet(nputstr=""):
     tokens = [x.strip() for x in nputstr.split(',')]
 
     for i in tokens:
-       try:
-          # typically, tokens are plain old integers
-          selection.add(int(i))
-       except:
-
-          # if not, then it might be a range
-          try:
-             token = [int(k.strip()) for k in i.split('-')]
-             if len(token) > 1:
-                token.sort()
-                # we have items seperated by a dash
-                # try to build a valid range
-                first = token[0]
-                last = token[len(token)-1]
-                for x in range(first, last+1):
-                   selection.add(x)
-          except:
-             # not an int and not a range...
-             invalid.add(i)
+        try:
+            # typically, tokens are plain old integers
+            selection.add(int(i))
+        except:
+            # if not, then it might be a range
+            try:
+                token = [int(k.strip()) for k in i.split('-')]
+                if len(token) > 1:
+                    token.sort()
+                    # we have items seperated by a dash
+                    # try to build a valid range
+                    first = token[0]
+                    last = token[len(token) - 1]
+                    for x in range(first, last + 1):
+                        selection.add(x)
+            except:
+                # not an int and not a range...
+                invalid.add(i)
 
     return selection
+
 
 def timestamp():
     import datetime
@@ -65,12 +64,14 @@ def timestamp():
 
     return truncated_time
 
+
 def write_to_log(filename, line):
     '''Writes a line of output to the log file. Manages opening and closing'''
     with open(filename, 'a') as f:
         f.write(line)
         f.write('\n')
         f.close()
+
 
 def assert_arglist(single_arg_option, multi_arg_option):
     '''
@@ -94,23 +95,25 @@ def assert_arglist(single_arg_option, multi_arg_option):
 
     assert(params_defined or all_optional_args_defined)
 
+
 def rft_to_string(rft):
     '''Transforms an rft (bool array) into a string for logging'''
     if rft is None:
-	return "[]"
+        return "[]"
 
     rft_mapping = ["z-reflection", "y-reflection",
-		   "x-reflection", "xy-transpose"]
+        "x-reflection", "xy-transpose"]
 
     rft_matches_mapping = len(rft) == len(rft_mapping)
     assert(rft_matches_mapping)
 
     applied_rules = [rft_mapping[i]
-	for i in range(len(rft_mapping)) if rft[i]]
+    for i in range(len(rft_mapping)) if rft[i]]
 
     rft_string = applied_rules.__repr__().replace("'","")
 
     return rft_string
+
 
 def data_aug_transform(data, rft):
         """
@@ -130,23 +133,24 @@ def data_aug_transform(data, rft):
         data : the transformed array
         """
 
-        if np.size(data)==0 or np.size(rft)==0:
+        if np.size(data) == 0 or np.size(rft) == 0:
             return data
 
-        #z-reflection
+        # z-reflection
         if rft[0]:
-            data  = data[:, ::-1, :,    :]
-        #y-reflection
+            data = data[:, ::-1, :, :]
+        # y-reflection
         if rft[1]:
-            data  = data[:, :,    ::-1, :]
-        #x-reflection
+            data = data[:, :, ::-1, :]
+        # x-reflection
         if rft[2]:
-            data = data[:,  :,    :,    ::-1]
+            data = data[:, :, :, ::-1]
         # transpose in XY
         if rft[3]:
             data = data.transpose(0,1,3,2)
 
         return data
+
 
 def _mirror2d( im, bf, fov ):
     """
@@ -165,9 +169,9 @@ def _mirror2d( im, bf, fov ):
     bsz = np.asarray(bf.shape, dtype='int')
     isz = np.asarray(im.shape, dtype='int')
     fov = fov.astype('int32')
-    l = (fov-1)/2
-    b = bsz - (fov/2)
-    i = isz - (fov/2)
+    l = (fov - 1) / 2
+    b = bsz - (fov / 2)
+    i = isz - (fov / 2)
 
     # 4 edges
     bf[:l[0], l[1]:b[1]] = im[:l[0], :][::-1, :]
@@ -183,7 +187,8 @@ def _mirror2d( im, bf, fov ):
     bf[b[0]:, :l[1]] = im[i[0]:, :l[1]][::-1,::-1]
     return bf
 
-def boundary_mirror( arr, fov ):
+
+def boundary_mirror(arr, fov):
     """
     mirror the boundary for each 3d array
 
@@ -196,20 +201,20 @@ def boundary_mirror( arr, fov ):
     ------
     ret : expanded 4D array with mirrored boundary
     """
-    assert(np.size(fov)==3)
+    assert(np.size(fov) == 3)
     print("boundary mirror...")
     fov = fov.astype('int32')
-    if np.all(fov==1):
+    if np.all(fov == 1):
         return arr
     # buffer size
     bfsz = np.asarray(arr.shape, dtype='int32')
-    bfsz[1:] += fov-1
+    bfsz[1:] += fov - 1
     # initialize the buffer
     bf = np.zeros(tuple(bfsz), dtype=arr.dtype)
 
     # low and high of fov
-    l = (fov-1)/2
-    b = bfsz[1:] - fov/2
+    l = (fov - 1) / 2
+    b = bfsz[1:] - fov / 2
     # fill the buffer with existing array
     bf[:, l[0]:b[0], l[1]:b[1], l[2]:b[2]] = arr
     for c in range(arr.shape[0]):
@@ -227,6 +232,7 @@ def boundary_mirror( arr, fov ):
             bf[c,z,:,:] = _mirror2d(bf[c, z, l[1]:b[1], l[2]:b[2]], bf[c,z,:,:], fov[1:])
     return bf
 
+
 def make_continuous( d ):
     """
     make the dictionary arrays continuous.
@@ -243,11 +249,13 @@ def make_continuous( d ):
         d[name] = np.ascontiguousarray(arr)
     return d
 
+
 def get_vox_num( d ):
     n = 0
     for name, arr in d.items():
         n = n + arr.shape[0]*arr.shape[1]*arr.shape[2]*arr.shape[3]
     return n
+
 
 def get_total_num(outputs):
     """
@@ -257,15 +265,18 @@ def get_total_num(outputs):
         n = n + np.prod(sz)
     return n
 
+
 def sum_over_dict(dict_vol):
     s = 0
     for name, vol in dict_vol.items():
         s += vol.sum()
     return s
 
+
 def dict_mask_empty(mask):
     vals = list(mask.values())
     return all([val.size == 0 for val in vals])
+
 
 def dict_mul(das,dbs):
     """
@@ -279,6 +290,7 @@ def dict_mul(das,dbs):
         elif np.size(b)==0:
             ret[name] = a
     return ret
+
 
 def get_malis_cost( props, lbl_outs, malis_weights ):
     assert( len(list(props.keys())) == 1 )
@@ -299,6 +311,7 @@ def get_malis_cost( props, lbl_outs, malis_weights ):
         dme[key] = np.nansum( eng*mw ) / np.nansum(mw)
     return dmc, dme
 
+
 def mask_dict_vol(dict_vol, mask=None):
     """
     Masks out values within the gradient value volumes
@@ -316,6 +329,7 @@ def check_dict_nan( d ):
             print("bad dict : ", d)
             return False
     return True
+
 
 def inter_save(pars, net, lc, vol_ins, props, lbl_outs, \
                grdts, malis_weights, wmsks, elapsed, it):
