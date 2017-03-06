@@ -27,7 +27,7 @@ class CDataset(object):
         # Desired size of subvolumes returned by this instance
         self.patch_shape = np.asarray(setsz[-3:])
         if pars['is_debug']:
-            print "patch shape: ", self.patch_shape
+            print("patch shape: ", self.patch_shape)
 
         # (see check_patch_bounds, or _calculate_patch_bounds)
         self.net_output_patch_shape = outsz
@@ -305,7 +305,7 @@ class ConfigImage(CDataset):
             vol = emirt.emio.imread(fl)
             if vol.ndim==4:
                 # read the VAST output RGB images
-                print "reading RGB label image: ", fl
+                print("reading RGB label image: ", fl)
                 assert( vol.dtype=='uint8' and vol.shape[3]==3 )
                 vol = vol.astype('uint32')
                 vol = vol[:,:,:,0]*256*256 + vol[:,:,:,1]*256 + vol[:,:,:,2]
@@ -331,9 +331,9 @@ class ConfigImage(CDataset):
         upper_bound  =   volume_margin_high - self.patch_margin_high
 
         if self.pars['is_debug']:
-            print "vlome margin low: ", volume_margin_low
-            print "patch_margin_low: ", self.patch_margin_low
-            print "deviation range:     ", lower_bound, "--", upper_bound
+            print("vlome margin low: ", volume_margin_low)
+            print("patch_margin_low: ", self.patch_margin_low)
+            print("deviation range:     ", lower_bound, "--", upper_bound)
 
         return lower_bound, upper_bound
 
@@ -379,22 +379,22 @@ class ConfigInputImage(ConfigImage):
         # preprocessing
         pp_types = config.get(sec_name, 'pp_types').split(',')
         assert self.data.shape[0]==1 and self.data.ndim==4
-        for c in xrange( self.data.shape[0] ):
+        for c in range( self.data.shape[0] ):
             self.data[c,:,:,:] = self._preprocess(self.data[c,:,:,:], pp_types[c])
 
         if pars['is_bd_mirror']:
             if self.pars['is_debug']:
-                print "data shape before mirror: ", self.data.shape
+                print("data shape before mirror: ", self.data.shape)
             self.data = utils.boundary_mirror(self.data, self.mapsz)
             #Modifying the deviation boundaries for the modified dataset
             self.calculate_sizes( )
             if self.pars['is_debug']:
-                print "data shape after mirror: ", self.data.shape
+                print("data shape after mirror: ", self.data.shape)
 
     def _preprocess( self, vol3d , pp_type ):
 
         if 'standard2D' == pp_type:
-            for z in xrange( vol3d.shape[0] ):
+            for z in range( vol3d.shape[0] ):
                 vol3d[z,:,:] = (vol3d[z,:,:] - np.mean(vol3d[z,:,:])) / np.std(vol3d[z,:,:])
         elif 'standard3D' == pp_type:
             vol3d = (vol3d - np.mean(vol3d)) / np.std(vol3d)

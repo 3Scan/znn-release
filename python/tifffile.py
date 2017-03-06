@@ -114,7 +114,7 @@ Examples
 ...         t = page.cz_lsm_info
 >>> tif.close()
 """
-from __future__ import division, print_function
+
 import sys
 import os
 import re
@@ -467,13 +467,13 @@ def imread(files, *args, **kwargs):
     if 'pattern' in kwargs:
         kwargs_seq['pattern'] = kwargs['pattern']
         del kwargs['pattern']
-    if isinstance(files, basestring) and any(i in files for i in '?*'):
+    if isinstance(files, str) and any(i in files for i in '?*'):
         files = glob.glob(files)
     if not files:
         raise ValueError('no files found')
     if len(files) == 1:
         files = files[0]
-    if isinstance(files, basestring):
+    if isinstance(files, str):
         with TiffFile(files, **kwargs_file) as tif:
             return tif.asarray(*args, **kwargs)
     else:
@@ -527,7 +527,7 @@ class TiffFile(object):
         multifile : bool
             If True, series may include pages from multiple files.
         """
-        if isinstance(arg, basestring):
+        if isinstance(arg, str):
             filename = os.path.abspath(arg)
             self._fh = open(filename, 'rb')
         else:
@@ -549,7 +549,7 @@ class TiffFile(object):
             raise
     def close(self):
         """Close open file handle(s)."""
-        for tif in self._tiffs.values():
+        for tif in list(self._tiffs.values()):
             if tif._fh:
                 tif._fh.close()
                 tif._fh = None
@@ -752,10 +752,10 @@ class TiffFile(object):
                                 newaxis = along.attrib.get('Type', 'other')
                                 newaxis = AXES_LABELS[newaxis]
                                 if 'Start' in along.attrib:
-                                    labels = range(
+                                    labels = list(range(
                                         int(along.attrib['Start']),
                                         int(along.attrib['End']) + 1,
-                                        int(along.attrib.get('Step', 1)))
+                                        int(along.attrib.get('Step', 1))))
                                 else:
                                     labels = [label.text for label in along
                                               if label.tag.endswith('Label')]
@@ -809,7 +809,7 @@ class TiffFile(object):
                 result.append(Record(axes=axes, shape=shape, pages=ifds,
                                      dtype=numpy.dtype(ifds[0].dtype)))
         for record in result:
-            for axis, (newaxis, labels) in modulo.items():
+            for axis, (newaxis, labels) in list(modulo.items()):
                 i = record.axes.index(axis)
                 size = len(labels)
                 if record.shape[i] == size:
@@ -974,7 +974,7 @@ class TiffPage(object):
         # read LSM info subrecords
         if self.is_lsm:
             pos = fh.tell()
-            for name, reader in CZ_LSM_INFO_READERS.items():
+            for name, reader in list(CZ_LSM_INFO_READERS.items()):
                 try:
                     offset = self.cz_lsm_info['offset_'+name]
                 except KeyError:
@@ -992,7 +992,7 @@ class TiffPage(object):
         Raise ValueError if tag values are not supported.
         """
         tags = self.tags
-        for code, (name, default, dtype, count, validate) in TIFF_TAGS.items():
+        for code, (name, default, dtype, count, validate) in list(TIFF_TAGS.items()):
             if not (name in tags or default is None):
                 tags[name] = TiffTag(code, dtype=dtype, count=count,
                                      value=default, name=name)
@@ -1525,7 +1525,7 @@ class TiffSequence(object):
             Regular expression pattern that matches axes names and sequence
             indices in file names.
         """
-        if isinstance(files, basestring):
+        if isinstance(files, str):
             files = natural_sorted(glob.glob(files))
         files = list(files)
         if not files:
@@ -1657,7 +1657,7 @@ class TiffTags(Record):
     def __str__(self):
         """Return string with information about all tags."""
         s = []
-        for tag in sorted(self.values(), key=lambda x: x.code):
+        for tag in sorted(list(self.values()), key=lambda x: x.code):
             typecode = "%i%s" % (tag.count * int(tag.dtype[0]), tag.dtype[1])
             line = "* %i %s (%s) %s" % (tag.code, tag.name, typecode,
                                         str(tag.value).split('\n', 1)[0])
@@ -1671,7 +1671,7 @@ def read_numpy(fh, byteorder, dtype, count):
     return numpy_fromfile(fh, byteorder+dtype[-1], count)
 def read_json(fh, byteorder, dtype, count):
     """Read tag data from file and return as object."""
-    return json.loads(unicode(stripnull(fh.read(count)), 'utf-8'))
+    return json.loads(str(stripnull(fh.read(count)), 'utf-8'))
 def read_mm_header(fh, byteorder, dtype, count):
     """Read MM_HEADER tag from file and return as numpy.rec.array."""
     return numpy.rec.fromfile(fh, MM_HEADER, 1, byteorder=byteorder)[0]
@@ -1790,7 +1790,7 @@ def imagej_metadata(data, bytecounts, byteorder):
         b'roi ': ('roi', read_bytes),
         b'over': ('overlays', read_bytes)}
     metadata_types.update(  # little endian
-        dict((k[::-1], v) for k, v in metadata_types.items()))
+        dict((k[::-1], v) for k, v in list(metadata_types.items())))
     if not bytecounts:
         raise ValueError("no ImageJ meta data")
     if not data[:4] in (b'IJIJ', b'JIJI'):
@@ -2370,7 +2370,7 @@ AXES_LABELS = {
     'V': 'event',
     'Q': 'other',
 }
-AXES_LABELS.update(dict((v, k) for k, v in AXES_LABELS.items()))
+AXES_LABELS.update(dict((v, k) for k, v in list(AXES_LABELS.items())))
 # NIH Image PicHeader v1.63
 NIH_IMAGE_HEADER = [
     ('fileid', 'a8'),
@@ -3028,7 +3028,7 @@ def imshow(data, title=None, vmin=0, vmax=None, cmap=None,
     subplot = pyplot.subplot(subplot)
     if title:
         try:
-            title = unicode(title, 'Windows-1252')
+            title = str(title, 'Windows-1252')
         except TypeError:
             pass
         pyplot.title(title, size=11)
@@ -3264,7 +3264,7 @@ def main(argv=None):
             pyplot.show()
 TIFFfile = TiffFile  # backwards compatibility
 if sys.version_info[0] > 2:
-    basestring = str, bytes
-    unicode = str
+    str = str, bytes
+    str = str
 if __name__ == "__main__":
     sys.exit(main())

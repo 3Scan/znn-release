@@ -7,6 +7,7 @@ import numpy as np
 import emirt
 import utils
 
+
 def get_cls(props, lbls, mask=None):
     """
     compute classification error.
@@ -23,17 +24,18 @@ def get_cls(props, lbls, mask=None):
     errors = dict()
     c = 0.0
 
-    #Applying mask if it exists
+    # Applying mask if it exists
     props = utils.mask_dict_vol(props, mask)
     lbls = utils.mask_dict_vol(lbls, mask)
 
-    for name, prop in props.iteritems():
+    for name, prop in props.items():
         lbl = lbls[name]
         c += np.count_nonzero( (prop>0.5) != (lbl>0.5) )
 
     return c
 
-#@jit(nopython=True)
+
+# @jit(nopython=True)
 def square_loss(props, lbls, mask=None):
     """
     compute square loss
@@ -51,11 +53,11 @@ def square_loss(props, lbls, mask=None):
     grdts = dict()
     err = 0
 
-    #Applying mask if it exists
+    # Applying mask if it exists
     props = utils.mask_dict_vol(props, mask)
     lbls = utils.mask_dict_vol(lbls, mask)
 
-    for name, prop in props.iteritems():
+    for name, prop in props.items():
         lbl = lbls[name]
 
         grdt = prop - lbl
@@ -65,6 +67,7 @@ def square_loss(props, lbls, mask=None):
 
     return (props, err, grdts)
 
+
 def square_square_loss(props, lbls, mask=None, margin=0.2):
     """
     square-square loss (square loss with a margin)
@@ -72,11 +75,11 @@ def square_square_loss(props, lbls, mask=None, margin=0.2):
     gradients = dict()
     error = 0
 
-    #Applying mask if it exists
+    # Applying mask if it exists
     props = utils.mask_dict_vol(props, mask)
     lbls = utils.mask_dict_vol(lbls, mask)
 
-    for name, propagation in props.iteritems():
+    for name, propagation in props.items():
         lbl = lbls[name]
 
         gradient = propagation - lbl
@@ -85,10 +88,10 @@ def square_square_loss(props, lbls, mask=None, margin=0.2):
 
         error += np.sum(np.square( gradient ))
 
-
     return (props, error, gradients)
 
-#@jit(nopython=True)
+
+# @jit(nopython=True)
 def binomial_cross_entropy(props, lbls, mask=None):
     """
     compute binomial cost
@@ -106,29 +109,29 @@ def binomial_cross_entropy(props, lbls, mask=None):
     grdts = dict()
     err = 0
 
-    #Taking a slightly different strategy with masking
+    # Taking a slightly different strategy with masking
     # to improve the numerical stability of the error output
     entropy = dict()
 
-    #Finding Gradients
-    for name, prop in props.iteritems():
+    # Finding Gradients
+    for name, prop in props.items():
         lbl = lbls[name]
 
         grdts[name] = prop - lbl
 
         entropy[name] = -lbl*np.log(prop) - (1-lbl)*np.log(1-prop)
 
-    #Applying mask if it exists
+    # Applying mask if it exists
     grdts = utils.mask_dict_vol(grdts, mask)
     entropy = utils.mask_dict_vol(entropy, mask)
 
-    for name, vol in entropy.iteritems():
+    for name, vol in entropy.items():
         err += np.sum( vol )
 
     return (props, err, grdts)
 
 
-#@jit(nopython=True)
+# @jit(nopython=True)
 def softmax(props):
     """
     softmax activation
@@ -140,22 +143,23 @@ def softmax(props):
     ret:   numpy array, softmax activation volumes
     """
     ret = dict()
-    for name, prop in props.iteritems():
+    for name, prop in props.items():
         # make sure that it is the output of binary class
         # assert(prop.shape[0]==2)
 
         # rebase the prop for numerical stability
         # mathematically, this does not affect the softmax result!
         propmax = np.max(prop, axis=0)
-        for c in xrange( prop.shape[0] ):
+        for c in range( prop.shape[0] ):
             prop[c,:,:,:] -= propmax
 
         prop = np.exp(prop)
         pesum = np.sum(prop, axis=0)
         ret[name] = np.empty(prop.shape, dtype=prop.dtype)
-        for c in xrange(prop.shape[0]):
+        for c in range(prop.shape[0]):
             ret[name][c,:,:,:] = prop[c,:,:,:] / pesum
     return ret
+
 
 def multinomial_cross_entropy(props, lbls, mask=None):
     """
@@ -175,39 +179,41 @@ def multinomial_cross_entropy(props, lbls, mask=None):
     grdts = dict()
     cost = 0
 
-    #Taking a slightly different strategy with masking
+    # Taking a slightly different strategy with masking
     # to improve the numerical stability of the error output
     entropy = dict()
 
-    for name, prop in props.iteritems():
+    for name, prop in props.items():
         lbl = lbls[name]
 
         grdts[name] = prop - lbl
 
         entropy[name] = -lbl * np.log(prop)
 
-    #Applying mask if it exists
+    # Applying mask if it exists
     grdts = utils.mask_dict_vol(grdts, mask)
     entropy = utils.mask_dict_vol(entropy, mask)
 
-    for name, vol in entropy.iteritems():
+    for name, vol in entropy.items():
         cost += np.sum( vol )
 
     return (props, cost, grdts)
+
 
 def softmax_loss(props, lbls, mask=None):
     props = softmax(props)
     return multinomial_cross_entropy(props, lbls, mask)
 
+
 def softmax_loss2(props, lbls, mask=None):
     grdts = dict()
     err = 0
 
-    for name, prop in props.iteritems():
+    for name, prop in props.items():
         # make sure that it is the output of binary class
         assert(prop.shape[0]==2)
 
-        print "original prop: ", prop
+        print("original prop: ", prop)
 
         # rebase the prop for numerical stability
         # mathimatically, this do not affect the softmax result!
@@ -226,11 +232,12 @@ def softmax_loss2(props, lbls, mask=None):
         lbl = lbls[name]
         grdts[name] = prop - lbl
         err = err + np.sum( -lbl * log_softmax )
-        print "gradient: ", grdts[name]
+        print("gradient: ", grdts[name])
         assert(not np.any(np.isnan(grdts[name])))
     return (props, err, grdts)
 
-#def hinge_loss(props, lbls):
+
+# def hinge_loss(props, lbls):
 # TO-DO
 
 
@@ -250,6 +257,7 @@ def constrain_label(prp, lbl):
     sprp = np.copy(prp)
     sprp[lbl==0] = 0
     return mprp, sprp
+
 
 def constrained_malis(prp, lbl, threshold=0.5):
     """
@@ -278,14 +286,14 @@ def constrained_malis(prp, lbl, threshold=0.5):
     re = (mfp + sfn)/(mtp+mtn+mfp+mfn)
     w = mme + sse
 
-    #print "mtp: ",mtp, "  mfn: ",mfn, "  mtn: ",mtn,"  mfp: ",mfp
-    #print "stp: ",stp, "  sfn: ",sfn, "  stn: ",stn,"  sfp: ",sfp
-
-    #print "mprp: ",mprp
-    #print "sprp: ",sprp
-    #print "prp: ",prp
+    # print("mtp: ",mtp, "  mfn: ",mfn, "  mtn: ",mtn,"  mfp: ",mfp)
+    # print("stp: ",stp, "  sfn: ",sfn, "  stn: ",stn,"  sfp: ",sfp)
+    # print("mprp: ",mprp)
+    # print("sprp: ",sprp)
+    # print("prp: ",prp)
 
     return (w, mme, sse, re, num)
+
 
 def constrained_malis_weight_bdm_2D(bdm, lbl, threshold=0.5):
     """
@@ -300,6 +308,7 @@ def constrained_malis_weight_bdm_2D(bdm, lbl, threshold=0.5):
     sw, sme, sse = malis_weight_bdm_2D(sbdm, lbl, threshold)
     w = mme + sse
     return (w, mme, sse)
+
 
 def malis_weight_bdm(bdm, lbl, threshold=0.5):
     """
@@ -334,9 +343,9 @@ def malis_weight_bdm(bdm, lbl, threshold=0.5):
     serr = np.empty(bdm.shape, dtype=bdm.dtype)
 
     # traverse along the z axis
-    for z in xrange(bdm.shape[1]):
+    for z in range(bdm.shape[1]):
         w, me, se = malis_weight_bdm_2D(bdm0[z,:,:], lbl0[z,:,:], threshold)
-        for c in xrange(bdm.shape[0]):
+        for c in range(bdm.shape[0]):
             weights[c,z,:,:] = w
             merr[c,z,:,:] = me
             serr[c,z,:,:] = se
@@ -344,6 +353,7 @@ def malis_weight_bdm(bdm, lbl, threshold=0.5):
     merr = merr.reshape( original_shape )
     serr = serr.reshape( original_shape )
     return weights, merr, serr
+
 
 def malis_weight(pars, props, lbls):
     """
@@ -359,7 +369,7 @@ def malis_weight(pars, props, lbls):
     else:
         is_frac_norm = 0
 
-    for name, prop in props.iteritems():
+    for name, prop in props.items():
         assert prop.ndim==4
         lbl = lbls[name]
         if prop.shape[0]==3:
@@ -370,7 +380,7 @@ def malis_weight(pars, props, lbls):
                 merr, serr, re, num_non_bdr, \
                     tp, tn, fp, fn = zalis( prop, lbl, \
                                             1.0, 0.0, is_frac_norm)
-                #print "tp: ",tp," tn: ",tn, "  fp:",fp,"  fn:",fn
+                # print("tp: ",tp," tn: ",tn, "  fp:",fp,"  fn:",fn)
             mw = merr + serr
 
             # normalization

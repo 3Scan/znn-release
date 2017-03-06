@@ -59,7 +59,7 @@ def batch_forward_pass( config, params, net, verbose=True, sample_ids=None ):
     sample_outputs = {}
     #Loop over sample range
     for sample in params['forward_range']:
-        print "Sample: %d" % sample
+        print("Sample: %d" % sample)
         # read image stacks
         # Note: preprocessing included within CSamples
         # See CONSTANTS section above for optionname values
@@ -76,16 +76,16 @@ def forward_pass( params, Dataset, network, verbose=True ):
     # Making sure loaded images expect same size output volume
     output_vol_shapes = Dataset.output_volume_shape()
     assert output_volume_shape_consistent(output_vol_shapes)
-    output_vol_shape = output_vol_shapes.values()[0]
+    output_vol_shape = list(output_vol_shapes.values())[0]
     Output = zsample.ConfigSampleOutput( params, network, output_vol_shape)
     input_num_patches = Dataset.num_patches()
     output_num_patches = Output.num_patches()
     assert num_patches_consistent(input_num_patches, output_num_patches)
-    num_patches = output_num_patches.values()[0]
+    num_patches = list(output_num_patches.values())[0]
 
-    for i in xrange( num_patches ):
+    for i in range( num_patches ):
         if verbose:
-	    print "Output patch #{} of {}".format(i+1, num_patches) # i is just an index
+	    print("Output patch #{} of {}".format(i+1, num_patches)) # i is just an index
         input_patches, junk = Dataset.get_next_patch()
 	vol_ins = utils.make_continuous(input_patches)
 	output = network.forward( vol_ins )
@@ -94,7 +94,7 @@ def forward_pass( params, Dataset, network, verbose=True ):
             break
     # softmax if using softmax_loss
     if 'softmax' in params['cost_fn_str']:
-        print "softmax filter..."
+        print("softmax filter...")
         Output = run_softmax( Output )
 
     return Output
@@ -106,11 +106,11 @@ def run_softmax( sample_output ):
     '''
     from cost_fn import softmax
 
-    for dname, dataset in sample_output.output_volumes.iteritems():
+    for dname, dataset in sample_output.output_volumes.items():
 
         props = {'dataset':dataset.data}
         props = softmax(props)
-        dataset.data = props.values()[0]
+        dataset.data = list(props.values())[0]
         sample_output.output_volumes[dname] = dataset
 
     return sample_output
@@ -124,7 +124,7 @@ def output_volume_shape_consistent( output_vol_shapes ):
 	size of the output volume (disagreement is a bad sign...)
 	'''
 	#output_vol_shapes should be a dict
-	shapes = output_vol_shapes.values()
+	shapes = list(output_vol_shapes.values())
 	assert len(shapes) > 0
 
 	return all( [np.all(shape == shapes[0]) for shape in shapes] )
@@ -136,8 +136,8 @@ def num_patches_consistent( input_patch_count, output_patch_count ):
 	'''
 
 	#These should be dicts as well
-	input_counts = input_patch_count.values()
-	output_counts = output_patch_count.values()
+	input_counts = list(input_patch_count.values())
+	output_counts = list(output_patch_count.values())
 
 	assert len(input_counts) > 0 and len(output_counts) > 0
 
@@ -149,14 +149,14 @@ def save_sample_outputs(sample_outputs, prefix):
     output_prefix
     '''
 
-    for sample_num, output in sample_outputs.iteritems():
-        for dataset_name, dataset in output.output_volumes.iteritems():
+    for sample_num, output in sample_outputs.items():
+        for dataset_name, dataset in output.output_volumes.items():
             num_volumes = dataset.data.shape[0]
 
             #Consolidated 4d volume
             # hdf5 output for watershed
             h5name = "{}_sample{}_{}.h5".format(prefix, sample_num,	dataset_name)
-            print "save output to ", h5name
+            print("save output to ", h5name)
             import os
             if os.path.exists( h5name ):
                 os.remove( h5name )

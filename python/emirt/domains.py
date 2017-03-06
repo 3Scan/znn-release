@@ -54,7 +54,7 @@ class CDisjointSets:
 
     def get_seg(self):
         # label all the voxel to root id
-        for vid in xrange( self._size ):
+        for vid in range( self._size ):
             # with path compression,
             # all the voxels will be labeled as root id
             rid = self.find_root( vid )
@@ -83,8 +83,8 @@ class CDomainLabelSizes:
         ----------
         dm2: CDomain, another domain
         """
-        for lid2, sz2 in dm2.sizes.iteritems():
-            if self.sizes.has_key(lid2):
+        for lid2, sz2 in dm2.sizes.items():
+            if lid2 in self.sizes:
                 # have common segment id, merge together
                 self.sizes[lid2] += sz2
             else:
@@ -105,8 +105,8 @@ class CDomainLabelSizes:
         # merging and splitting error
         me = 0
         se = 0
-        for lid1, sz1 in self.sizes.iteritems():
-            for lid2, sz2 in dm2.sizes.iteritems():
+        for lid1, sz1 in self.sizes.items():
+            for lid2, sz2 in dm2.sizes.items():
                 # ignore the boundaries
                 if lid1>0 and lid2>0:
                     if lid1==lid2:
@@ -137,7 +137,7 @@ class CDomains (CDisjointSets):
 
         self.dms = list()
         # voxel id start from 0
-        for vid in xrange( lbl.size ):
+        for vid in range( lbl.size ):
             # manual labeled segment id
             lid = lbl.flat[vid]
             self.dms.append( CDomainLabelSizes(lid) )
