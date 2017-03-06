@@ -25,9 +25,12 @@ RUN apt-get update \
         build-essential \
         g++-4.8 \
         git \
+        libfftw3-dev \
+        cmake \
     && apt-get clean \
     && apt-get autoremove \
     && rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp*
+RUN apt-get install -y libfftw3-dev cmake
 
 # install g++
 RUN apt-get install -qq g++-4.8 &&\
@@ -43,8 +46,6 @@ RUN cd boost_1_55_0 &&\
     ./bootstrap.sh --with-libraries="atomic" &&\
     ./b2 install &&\
     cd ..
-
-RUN apt-get install -y libfftw3-dev cmake
 
 # python installs
 RUN apt-get install -y \
@@ -72,10 +73,10 @@ COPY . /root/znn-release
 # install Boost.Numpy for python interface
 ENV LD_LIBRARY_PATH $LD_LIBRARY:/usr/local/lib
 ENV BOOST_DIR /root/boost_1_55_0
-WORKDIR /root/znn-release/python
+WORKDIR /root/
 RUN git clone https://github.com/ndarray/Boost.NumPy.git
 RUN mkdir -p Boost.NumPy/build
-WORKDIR /root/znn-release/python/Boost.NumPy/build
+WORKDIR /root/Boost.NumPy/build
 # RUN cmake -DBoost_NO_BOOST_CMAKE=ON -DPYTHON_EXECUTABLE=/usr/bin/python3.5 -DPYTHON_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.5m.so ..
 RUN cmake -DPYTHON_EXECUTABLE=/usr/bin/python3.5 -DPYTHON_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.5m.so -DBOOST_LIBRARYDIR=/usr/lib/x86_64-linux-gnu/libboost_python-py34.so ..
 RUN make

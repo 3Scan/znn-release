@@ -12,6 +12,7 @@ import zstatistics
 
 np_array_fields = ("filters","biases","size","stride")
 
+
 def assert_arglist(single_arg_option, multi_arg_option):
     '''
     Several functions can be called using a composite (parameters/params) data structure or
@@ -35,6 +36,7 @@ def assert_arglist(single_arg_option, multi_arg_option):
 
     assert(params_defined or all_optional_args_defined)
 
+
 def save_opts(opts, filename, is_stdio=False):
     # standard format folder prefix
     if is_stdio:
@@ -42,7 +44,7 @@ def save_opts(opts, filename, is_stdio=False):
     else:
         stdpre = ""
 
-    #Note: opts is a tuple of lists of dictionaries
+    # Note: opts is a tuple of lists of dictionaries
     f = h5py.File(filename, 'a')
 
     # standard format folder prefix
@@ -51,16 +53,15 @@ def save_opts(opts, filename, is_stdio=False):
     else:
         stdpre = ""
 
-    for group_type in range(len(opts)): #nodes vs. edges
+    for group_type in range(len(opts)):  # nodes vs. edges
 
-        #loop over group dict list
+        # loop over group dict list
         for layer in opts[group_type]:
 
-            #each layer is a dict
+            # each layer is a dict
             layer_name = layer["name"]
-            #Init
-
-            #create a dataset for the filters/biases
+            # Init
+            # create a dataset for the filters/biases
             fields = list(layer.keys())
             if "filters" in fields:
 
@@ -75,7 +76,7 @@ def save_opts(opts, filename, is_stdio=False):
                 biases_dset_name = "%s/%s/%s" % (stdpre, layer_name, "biases")
                 f.create_dataset(biases_dset_name, data=layer["biases"][0])
 
-                momentum_dset_name =  "%s/%s/%s" % (stdpre, layer_name, "momentum_vol")
+                momentum_dset_name = "%s/%s/%s" % (stdpre, layer_name, "momentum_vol")
                 f.create_dataset(momentum_dset_name, data=layer["biases"][1])
 
             if "size" in fields:
@@ -92,20 +93,20 @@ def save_opts(opts, filename, is_stdio=False):
 
                 f.create_dataset(dset_name, data=data)
 
-
             for field in layer:
 
                 if field in np_array_fields:
-                    continue #already taken care of
+                    continue  # already taken care of
 
                 attr_name = "%s/%s/%s" % (stdpre, layer_name, field)
                 f[attr_name] = layer[field]
 
-            #Final flag for node_group type
+            # Final flag for node_group type
             group_type_name = "%s/%s/%s" % (stdpre, layer_name, "group_type")
             f[group_type_name] = ("node","edge")[group_type]
 
     f.close()
+
 
 def find_load_net( train_net_prefix, seed=None ):
     if seed and os.path.exists(seed):
@@ -118,6 +119,7 @@ def find_load_net( train_net_prefix, seed=None ):
         return None
     else:
         return fnet
+
 
 def get_net_fname(train_net_prefix, num_iters=None, suffix=None):
     # get directory name from file name
@@ -136,6 +138,7 @@ def get_net_fname(train_net_prefix, num_iters=None, suffix=None):
         filename = train_net_prefix + "_{}.h5".format( num_iters )
     return filename, filename_current
 
+
 def save_network(network, filename, is_stdio=False):
     '''Saves a network under an h5 file. Appends the number
     of iterations if passed, and updates a "current" file with
@@ -144,6 +147,7 @@ def save_network(network, filename, is_stdio=False):
     if os.path.exists(filename):
         os.remove(filename)
     save_opts(network.get_opts(), filename, is_stdio=is_stdio)
+
 
 def load_opts(filename, is_stdio=False):
     '''Loads a pyopt structure (tuple of list of dicts) from a stored h5 file'''
@@ -158,16 +162,16 @@ def load_opts(filename, is_stdio=False):
     else:
         stdpre = "/"
 
-    #each file has a collection of h5 groups which details a
+    # each file has a collection of h5 groups which details a
     # network layer
     for group in f[stdpre]:
 
         layer = {}
 
-        #each network layer has a number of fields
+        # each network layer has a number of fields
         for field in f[stdpre + group]:
 
-            #h5 file loads unicode strings, which causes issues later
+            # h5 file loads unicode strings, which causes issues later
             # when passing to c++
             field = str(field)
 
@@ -175,7 +179,7 @@ def load_opts(filename, is_stdio=False):
 
             if field == "filters":
 
-                momentum_dset_name = stdpre + "%s/%s" % ( group, "momentum_vol")
+                momentum_dset_name = stdpre + "%s/%s" % (group, "momentum_vol")
 
                 layer["filters"] = (
                     f[dset_name].value,
@@ -184,7 +188,7 @@ def load_opts(filename, is_stdio=False):
 
             elif field == "biases":
 
-                momentum_dset_name = stdpre + "%s/%s" % ( group, "momentum_vol")
+                momentum_dset_name = stdpre + "%s/%s" % (group, "momentum_vol")
 
                 layer["biases"] = (
                     f[dset_name].value,
@@ -201,21 +205,21 @@ def load_opts(filename, is_stdio=False):
 
             elif field == "group_type":
 
-                #group_type is handled after the dict is complete
+                # group_type is handled after the dict is complete
                 # (after the if statements here)
                 continue
 
             elif field == "momentum_vol":
 
-                #This should be loaded by the filters or biases option
+                # This should be loaded by the filters or biases option
                 continue
             elif field == "znn":
                 print("invalid standard format!")
             else:
-                 layer[field] = f[dset_name].value
+                layer[field] = f[dset_name].value
 
-        #Figuring out where this layer belongs (group_type)
-        group_type_name = stdpre + "%s/%s" % ( group, "group_type")
+        # Figuring out where this layer belongs (group_type)
+        group_type_name = stdpre + "%s/%s" % (group, "group_type")
         if f[group_type_name].value == "node":
             node_opts.append(layer)
         else:
@@ -223,17 +227,18 @@ def load_opts(filename, is_stdio=False):
 
     return (node_opts, edge_opts)
 
+
 def consolidate_opts(source_opts, dest_opts, params=None, layers=None):
     '''
     Takes two option structures, and implants the filters and biases
     from the source struct to the dest version based on node/edge group name
     '''
 
-    #Makes a dictionary mapping group names to filter/bias arrays
+    # Makes a dictionary mapping group names to filter/bias arrays
     # (along with the respective key: 'filters' or 'biases')
     src_params = {}
     src_ffts = {}
-    #0=node, 1=edge
+    # 0=node, 1=edge
     print("defining initial dict")
     for group_type in range(len(source_opts)):
         for opt_dict in source_opts[group_type]:
@@ -249,7 +254,7 @@ def consolidate_opts(source_opts, dest_opts, params=None, layers=None):
 
     print("performing consolidation")
     source_names = list(src_params.keys())
-    #Loops through group names for dest, replaces filter/bias values with source
+    # Loops through group names for dest, replaces filter/bias values with source
     for group_type in range(len(dest_opts)):
         for opt_dict in dest_opts[group_type]:
 
@@ -261,7 +266,7 @@ def consolidate_opts(source_opts, dest_opts, params=None, layers=None):
                 key, array = src_params[opt_dict['name']]
                 opt_dict[key] = array
 
-                #should only be one copy of the layer to load,
+                # should only be one copy of the layer to load,
                 # and this allows for warning messages below
                 del src_params[ opt_dict['name'] ]
 
@@ -277,9 +282,9 @@ def consolidate_opts(source_opts, dest_opts, params=None, layers=None):
     return dest_opts
 
 
-def load_network( params=None, train=True, hdf5_filename=None,
-    network_specfile=None, output_patch_shape=None, num_threads=None,
-    optimize=None, force_fft=None, is_stdio=None ):
+def load_network(params=None, train=True, hdf5_filename=None,
+                 network_specfile=None, output_patch_shape=None, num_threads=None,
+                 optimize=None, force_fft=None, is_stdio=None ):
     '''
     Loads a network from an hdf5 file.
 
@@ -290,18 +295,18 @@ def load_network( params=None, train=True, hdf5_filename=None,
     the parameter object will form the default options, and those will be
     overwritten by the other optional arguments
     '''
-    #Need to specify either a params object, or all of the other optional args
+    # Need to specify either a params object, or all of the other optional args
     params_defined = params is not None
 
-    #"ALL" optional args excludes train (it has a default)
+    # "ALL" optional args excludes train (it has a default)
     assert_arglist(params,
-        [ hdf5_filename, network_specfile, output_patch_shape,
+        [hdf5_filename, network_specfile, output_patch_shape,
         num_threads, optimize, force_fft])
 
-    #Defining phase argument by train argument
+    # Defining phase argument by train argument
     phase = int(not train)
 
-    #If a params object exists, then those options are the default
+    # If a params object exists, then those options are the default
     if params_defined:
 
         if train:
@@ -334,7 +339,7 @@ def load_network( params=None, train=True, hdf5_filename=None,
         _num_threads = params['num_threads']
         _is_stdio = params['is_stdio']
 
-    #Overwriting defaults with any other optional args
+    # Overwriting defaults with any other optional args
     if hdf5_filename is not None:
         _hdf5_filename = hdf5_filename
     if network_specfile is not None:
@@ -346,8 +351,8 @@ def load_network( params=None, train=True, hdf5_filename=None,
     if is_stdio is not None:
         _is_stdio = is_stdio
 
-    #ACTUAL LOADING FUNCTIONALITY
-    #This is a little strange to allow for "seeding" larger
+    # ACTUAL LOADING FUNCTIONALITY
+    # This is a little strange to allow for "seeding" larger
     # nets with other training runs
     # 1) Initialize template net for network_specfile
     # 2) Load options from hdf5_filename (possibly containing the seed net)
@@ -359,7 +364,7 @@ def load_network( params=None, train=True, hdf5_filename=None,
     template = init_network( params, train, _network_specfile, _output_patch_shape,
                 _num_threads, False, False )
 
-    #If the file doesn't exist, init a new network
+    # If the file doesn't exist, init a new network
     print("try to load network file: ", _hdf5_filename)
     if os.path.isfile( _hdf5_filename ):
 
@@ -378,6 +383,7 @@ def load_network( params=None, train=True, hdf5_filename=None,
     return pyznn.CNet(final_options, _network_specfile, _output_patch_shape,
                 _num_threads, _optimize, phase, _force_fft)
 
+
 def init_network( params=None, train=True, network_specfile=None,
             output_patch_shape=None, num_threads=None, optimize=None,
             force_fft=None ):
@@ -392,17 +398,17 @@ def init_network( params=None, train=True, network_specfile=None,
     the parameter object will form the default options, and those will be
     overwritten by the other optional arguments
     '''
-    #Need to specify either a params object, or all of the other optional args
-    #"ALL" optional args excludes train
+    # Need to specify either a params object, or all of the other optional args
+    # "ALL" optional args excludes train
     assert_arglist(params,
-                [network_specfile, output_patch_shape,
-                num_threads, optimize]
-                )
+                   [network_specfile, output_patch_shape,
+                   num_threads, optimize]
+                   )
 
-    #Defining phase argument by train argument
+    # Defining phase argument by train argument
     phase = int(not train)
 
-    #If a params object exists, then those options are the default
+    # If a params object exists, then those options are the default
     if params is not None:
 
         if train:
@@ -429,7 +435,7 @@ def init_network( params=None, train=True, network_specfile=None,
         _network_specfile = params['fnet_spec']
         _num_threads = params['num_threads']
 
-    #Overwriting defaults with any other optional args
+    # Overwriting defaults with any other optional args
     if network_specfile is not None:
         _network_specfile = network_specfile
     if output_patch_shape is not None:
@@ -443,6 +449,7 @@ def init_network( params=None, train=True, network_specfile=None,
 
     return pyznn.CNet(_network_specfile, _output_patch_shape,
                     _num_threads, _optimize, phase, _force_fft)
+
 
 def create_net(pars):
     fnet = find_load_net( pars['train_net_prefix'], pars['seed'] )
