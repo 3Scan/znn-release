@@ -84,9 +84,9 @@ RUN make install
 WORKDIR /root/znn-release
 
 # make the znn binary
-RUN make --jobs=3 --keep-going &&  make clean
-# make the python core
-RUN cd python/core/; make --jobs=3 --keep-going
+# RUN make --jobs=3 --keep-going &&  make clean
+# # make the python core
+# RUN cd python/core/; make --jobs=3 --keep-going
 
 # add tests here?
 
